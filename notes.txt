@@ -1,0 +1,40 @@
+===== SYS5 =====
+ ==> Sujet en analyse : Contrôle des jobs
+ 
+ 1. Groupes de processus
+	- Définition du concept et fonctionnement (PGID)
+	- Leader d'un groupe
+	- Création d'un nouveau groupe (lors de l'execution d'un job)
+		- Restrictions
+		- Problemes (assignation du pgid du fils)
+		- Solution  (implémentation "simple" du shell de controle des jobs)
+	- fonctions : getpgrp(), setpgid()
+	
+ 2. Sessions
+	- Définition du concept et fonctionnement (SID)
+	- Leader d'une session
+	- Création d'une nouvelle séssion
+		- Restrictions
+		- Perte du terminal
+	
+	
+  3. Les terminales de controle
+		- Association d'une session avec un terminal
+		- Dissociation d'une session avec un terminal
+		- Processus en Background et Foreground
+			- La gestion et controle du terminal
+			- Assignation d'un groupe en fg
+		- Perte d'un terminal (Signal SIGHUP)
+			- Gestion de SIGHUB
+		
+ 4. L'aboutissement final : Controle de Jobs
+
+
+Bibliographie : 
+
+The Linux Programming Interface by Michael KerrisK - Chapter 34 - PROCESS GROUPS, SESSIONS, AND JOB CONTROL
+
+The Linux Command Line by William Shotts - Chapter 10
+
+
+
