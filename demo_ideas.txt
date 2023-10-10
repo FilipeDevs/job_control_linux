@@ -1,0 +1,10 @@
+==== Idées de Demos ====
+
+	Groupes de process:
+	-> Démo création nouveau:
+		Montrer PID, PGID du shell (echo $$)
+		Exec jobs en bg et fg
+		Montrer le PGID des jobs
+
+	Process en bg et fg:
+	-> Démo 
