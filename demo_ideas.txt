@@ -1,10 +1,21 @@
 ==== Idées de Demos ====
 
-	Groupes de process:
-	-> Démo création nouveau:
-		Montrer PID, PGID du shell (echo $$)
-		Exec jobs en bg et fg
-		Montrer le PGID des jobs
+DEMO/TEST 1 
 
-	Process en bg et fg:
-	-> Démo 
+=> Monter que le shell (le leader de session SID=PID) à chaque nouveau job (commande ou pipeline) executé, celui-ci
+sera placé dans un nouveau groupe (mais reste bien sur dans la meme session que le bash)
+
+$ echo $$
+$sleep 10 &
+$sleep 10 | ls &
+$ps -o 'pid ppid pgid sid comm'
+
+=> ps va montrer que les 2 sleep sont placés dans des groupes différents (PGID diff) et leurs SID reste le meme
+(meme PID que le bash)
+
+
+DEMO/TEST 2
+
+=> Demonter le signal SIGHUP. Créer un bete programme qui fait un pause() + un handler pour SIGHUP et print sa réception.
+Le print sera placé dans un fichier .log. Puis lancer ce programme dans le shell et exit le shell. Le log va bien montrer
+que le programme a recu SIGHUP envoyé par le shell (le terminal de controle a été perdu)
