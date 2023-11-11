@@ -1,0 +1,34 @@
+\section{Groupes de Processus}
+Un groupe de processus est une collection d’un ou plusieurs processus qui partagent un identifiant de groupe de processus (PGID) commun. L'identifiant de groupe de processus (PGID) est un numéro de type \textit{pid\_t}, similaire à l'identifiant de processus (PID). 
+\newline
+Chaque groupe de processus est dirigé par un chef de groupe de processus, qui est le processus responsable de la création du groupe et dont l'identifiant de processus (PID) devient l'identifiant de groupe de processus (PGID) du groupe. Lorsqu'un nouveau processus est créé, il hérite automatiquement de l'identifiant de groupe de processus (PGID) de son processus parent.
+\newline
+\subsection{Création d'un nouveau groupe}
+La création d'un nouveau groupe de processus, fondamentale dans le contrôle des jobs, est réalisée via l'appel système \textit{setpgid()} . Cette fonction permet de changer le groupe de processus d'un processus existant ou de créer un groupe totalement nouveau. Nous examinons ici cet appel système ansi que les conséquences de l'utilisation de \textit{setpgid()}.
+
+\subsubsection{L’appel système \textit{setpgid()} }
+\begin{lstlisting}[frame=single]
+#include <unistd.h>
+
+int setpgid(pid_t pid, pid_t pgid);
+\end{lstlisting}
+L’appel système \textit{setpgid()} permet de modifier le groupe de processus auquel appartient un processus donné ou créer un nouveau groupe de processus.
+\newline
+Paramètres :
+\begin{itemize}
+\item\textit{pid\_t} pid : C’est le PID du processus dont le groupe de processus doit être modifié (PGID). Si sa valeur est 0 alors la valeur du paramètre sera la même que le PID du processus appelant.
+\item \textit{pid\_t} pgid : C’est le PGID vers lequel le processus avec le PID spécifié doit être déplacé. Si le paramètre est spécifié comme 0, alors sa valeur sera la même qui le PID du processus appelant.
+\end{itemize}
+
+Si les arguments pid et pgid spécifient le même processus (c'est-à-dire que pgid vaut 0 ou correspond au PID du processus spécifié par pid), un nouveau groupe de processus est créé et le leader de ce nouveau groupe est le processus spécifié (processus appelant si pid vaut 0).
+Une restriction importante à savoir est qu’un processus ne peut pas modifier le PGID d’un de ses enfants lorsque celui-ci a effectué un \textit{exec()}. Si ça arrive une erreur EACCES sera déclenché.
+
+\subsubsection{L’utilisation dans le contrôle de jobs}
+Dans le contexte du contrôle de jobs, il est essentiel de regrouper tous les processus d'un job (une commande ou un pipeline) dans un seul groupe de processus. Cela permet au shell de gérer efficacement ces processus en envoyant simultanément des signaux à tous les membres du groupe de processus. 
+\newline
+Cependant, une problématique se pose : comment modifier le PGID des processus enfants d'un des processus d'un job ?
+Comme expliqué précédemment, tous les processus d'un job doivent être dans un seul groupe, ce qui veut dire que tout processus fils créé par ce job doit lui aussi être dans le même groupe que son parent.
+\newline
+Cette question découle de l'imprévisibilité de l'ordonnanceur lors de l'appel à \textit{fork()} : nous ne pouvons pas garantir quel processus, le père ou le fils, sera le premier à s'exécuter.
+Pour résoudre ce problème, les shells de contrôle de jobs sont programmés de manière à ce que le père et le fils appellent tous les deux \textit{setpgid()} immédiatement après l'appel à \textit{fork()}. Cette approche garantit que le PGID du fils est modifié, indépendamment de l'ordre d'exécution des processus. Si le père n’est pas le premier à appeler \textit{setpgid()}, il recevra une erreur EACCES puisque le fils a déjà changé son PGID et a effectué un \textit{exec()}, pour remédier à ce problème il va tout simplement ignorer l’occurrence de cette erreur après l’appel de \textit{setpgid()}.
+
