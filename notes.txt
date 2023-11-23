@@ -1,40 +1,25 @@
-===== SYS5 =====
- ==> Sujet en analyse : Contrôle des jobs
- 
- 1. Groupes de processus
-	- Définition du concept et fonctionnement (PGID)
-	- Leader d'un groupe
-	- Création d'un nouveau groupe (lors de l'execution d'un job)
-		- Restrictions
-		- Problemes (assignation du pgid du fils)
-		- Solution  (implémentation "simple" du shell de controle des jobs)
-	- fonctions : getpgrp(), setpgid()
-	
- 2. Sessions
-	- Définition du concept et fonctionnement (SID)
-	- Leader d'une session
-	- Création d'une nouvelle séssion
-		- Restrictions
-		- Perte du terminal
-	
-	
-  3. Les terminales de controle
-		- Association d'une session avec un terminal
-		- Dissociation d'une session avec un terminal
-		- Processus en Background et Foreground
-			- La gestion et controle du terminal
-			- Assignation d'un groupe en fg
-		- Perte d'un terminal (Signal SIGHUP)
-			- Gestion de SIGHUB
-		
- 4. L'aboutissement final : Controle de Jobs
+Modifications à apporter au rapport : 
 
+1. Ne pas directement se lancer sur un pilier spécifique.
+	=> Essayer de donner un "overview" avant d'expliquer les sujets
 
-Bibliographie : 
+	=> Avant de parler de groupes et sessions, donner une bref explication
+	de leurs usage dans le job control, pour renforcer ca ajouter un schema de relation de
+	groupes et sessions + mettre un print d'un exemple de commandes pour illsutrer se schema
+	cfr. : page 701 demo Linux Interface.
 
-The Linux Programming Interface by Michael KerrisK - Chapter 34 - PROCESS GROUPS, SESSIONS, AND JOB CONTROL
+	=> Groupes et sessions : c'est bien de parler de comment on peut les créér mais comme la prof
+	le dit "on doit me croire sur parole", il faut donc des demos pour illustrer ca et justifier mes
+	explcations (cfr demos : 703 + 706)
 
-The Linux Command Line by William Shotts - Chapter 10
+	=> SIGHUP : parler des exceptions càd expliquer quelques commandes/situations ou sighup ne sera pas
+	envoyé/recu (nohup, hupnoexit shell interactif login, disown ?)   
+		=> disown : interressant à parler !
+		=> disown retire un job de la liste des jobs du shell mais il continuera à tourner, ce qui est
+		bien est que lorsque le terminal se déconnecte (sighup est donc envoyé) le job affecté (qui en realité 
+		n'est plus dans la liste de jobs du shell) par disown ne va pas recevoir sighup et il continuera à tourner
+		par contre l'accés au terminal est coupé donc s'il essaye d'y acceder (stdin ou stdout) il recevra une erreur !
+		=> Pour visualiser : regarder tuto baeldung linux job control disown no hup
 
 
 
