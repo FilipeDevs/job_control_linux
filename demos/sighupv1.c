@@ -50,10 +50,11 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
     }
 
-    alarm(20); // Envoyer un SIGALARM, pour terminer le process si rien ne le termine
+    alarm(30); // Envoyer un SIGALARM, pour terminer le process si rien ne le termine
 
 
     for(;;) { // Wait des signaux
         pause();
     }
+
 }
