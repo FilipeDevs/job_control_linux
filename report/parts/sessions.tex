@@ -4,15 +4,59 @@ Une session est un regroupement de plusieurs groupes de processus. La participat
 \subsection{L’appel système \textit{setsid()} }
 L’appel système \textit{setsid()} permet de créer une nouvelle session et définir le processus appelant comme le leader de cette session. Le PGID et SID deviennent le même que le PID du processus appelant.
 \newline
-\begin{lstlisting}[frame=single]
+\begin{lstlisting}
 #include <unistd.h>
 
 pid_t setsid(void);
 \end{lstlisting}
 Il est important de noter que, d'une part, un leader de groupe de processus existant ne peut pas créer une nouvelle session. D'autre part, lorsqu'un processus fait l'appel à \textit{setsid()}, il perd toute connexion préexistante au terminal de contrôle. 
 \newline
-Le code de démonstration, \textit{creationSessions.c}, illustre la création d'une nouvelle session, pour démontrer que cette nouvelle session n'a plus d'accés au terminal de contrôle, le programme essaye d'ouvrir
-le terminal de contrôle associé à la session et se plante. Voici le résulalt en éxécutant le programme :
+Le code ci-dessous, illustre la création d'une nouvelle session, pour démontrer que cette nouvelle session n'a plus d'accés au terminal de contrôle, le programme essaye d'ouvrir
+le terminal de contrôle associé à la session. Une éxécution de ce programme entraine un résultat similaire à celui-ci  :
 
+\begin{lstlisting}
+$ ./creationSession
+Avant nouvelle session : PID=1023, PGID=1022, SID=944
+Apres nouvelle session : PID=1023, PGID=1023, SID=1023
 open /dev/tty : No such device or address
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[caption={creationSession.c}, label={creationSession.c}]
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>  
+
+int main(void) {
+
+    if (fork() != 0) // Exit du parent
+        exit(0);
+
+    printf("Avant nouvelle session : PID=%ld, PGID=%ld, SID=%ld\n", (long) getpid(),
+        (long) getpgrp(), (long) getsid(0));
+
+    if (setsid() == -1)
+        perror("setsid");
+        exit(-1);
+
+    printf("Avant nouvelle session : PID=%ld, PGID=%ld, SID=%ld\n", (long) getpid(),
+        (long) getpgrp(), (long) getsid(0));
+
+    if (open("/dev/tty", O_RDWR) == -1) // Ouvrir terminal de controle associe
+        perror("open /dev/tty");
+        exit(-1);
+
+    exit(0);
+}
+
+\end{lstlisting}
+
+
+
+
+
+
 

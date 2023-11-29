@@ -1,8 +1,9 @@
 \section{Relations Groupes/Sessions}
 
-Maintenant que nous avons exploré les concepts de groupes de processus et de sessions, l'exemple en shell ci-dessus offre une opportunité pratique d'illustrer comment ces notions interagissent dans un environnement Unix/Linux.
+Afin de clarifier les concepts de groupes de processus et de sessions, l'exemple de code shell ci-dessous offre une opportunité pratique pour illustrer leur interaction.
 
-\begin{lstlisting}[language=sh,basicstyle=\small]
+
+\begin{lstlisting}
 $ echo $$ # PID du shell
 1121
 $ yes "data" | head -n 1000000000 > /dev/null &  # 2 process en background

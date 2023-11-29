@@ -4,10 +4,8 @@
 #include <unistd.h>
 
 static void handleSigHup(int sig) {
-
     printf("%ld: J'ai reçu SIGHUP\n", (long) getpid());
     fflush(stdout);
-
 }
 
 int main(int argc, char *argv[]) {
@@ -37,7 +35,7 @@ int main(int argc, char *argv[]) {
     if(processFils == 0){
         /*
          * Déplacer le fils dans un nouveau groupe si un parametre a été passé
-         * (le shell n'a pas créée ce groupe, il n'est pas au courant !)
+         * (le shell n'a pas créée ce groupe, il n'est pas dans la liste de ses jobs !)
          */
         if(argc > 1) {
             if (setpgid(0, 0) == -1)

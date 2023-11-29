@@ -8,7 +8,7 @@ Chaque groupe de processus est dirigé par un chef de groupe de processus, qui e
 
 La création d'un nouveau groupe de processus, essentielle dans le contrôle des jobs, est réalisée via l'appel système \textit{setpgid()} . Cette fonction permet de changer le groupe de processus d'un processus existant ou de créer un groupe totalement nouveau.
 
-\begin{lstlisting}[frame=single]
+\begin{lstlisting}
 #include <unistd.h>
 
 int setpgid(pid_t pid, pid_t pgid);
@@ -17,6 +17,34 @@ int setpgid(pid_t pid, pid_t pgid);
 L’appel système \textit{setpgid()} modifie le groupe de processus d'un processus existant ou crée un nouveau groupe. Les paramètres \textit{pid} et \textit{pgid} déterminent le processus et le nouveau PGID respectivement. Si ces paramètres spécifient le même processus, un nouveau groupe est créé, avec le processus spécifié en tant que leader.
 
 Une restriction importante est que le PGID d'un enfant ne peut pas être modifié après un \textit{exec()}, déclenchant une erreur EACCES si tenté.
+
+\subsubsection{Création d'un nouveau groupe}
+
+Voici un petit code qui démontre la création d'un nouveau groupe à l'aide de \textit{setpgid()}:
+
+\begin{lstlisting}[caption={creationGroupe.c}, label={creationGroupe.c}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main() {
+    pid_t pid = fork();
+    if (pid == 0) {
+        printf("Enfant avant creation du groupe - PID: %d, PGID: %d\n", getpid(), getpgrp());
+        setpgid(0, 0); // Creer un nouveau groupe de processus avec le processus enfant comme leader
+        printf("Enfant apres creation du groupe - PID: %d, PGID: %d\n", getpid(), getpgrp());
+    } else if (pid > 0) {
+        // Code du processus parent
+        sleep(1); // Donner une chance au processus enfant de s'executer et de creer le nouveau groupe
+        printf("Parent - PID: %d, PGID: %d\n", getpid(), getpgrp());
+    } else {
+        perror("Erreur lors de la creation du processus");
+        exit(EXIT_FAILURE);
+    }
+    return 0;
+}
+\end{lstlisting}
+
 
 \subsubsection{Contraintes dans le contrôle de jobs}
 
@@ -32,8 +60,37 @@ Pour chaque processus dans la tâche, soit le shell (parent), soit le job (enfan
 \subsection{L’appel système \textit{getpgrp()} }
 Chaque processus possède un identifiant de groupe de processus qui définit le groupe de processus auquel il appartient (PGID). Un nouveau processus hérite de l'identifiant de groupe de processus de son parent. Un processus peut obtenir son identifiant de groupe de processus en utilisant getpgrp(). Si la valeur renvoyée par getpgrp() correspond à l'ID du processus appelant, cela signifie que ce processus est le leader de son groupe de processus.
 \newline
-\begin{lstlisting}[frame=single]
+\begin{lstlisting}
 #include <unistd.h>
 
 pid_t getpgrp(void);
 \end{lstlisting}
+
+
+
+\subsubsection{Obtenir le groupe}
+
+Voici un petit code qui démontre comment obtenir le groupe d'un processus à l'aide de  \textit{getpgrp()}.
+
+\begin{lstlisting}[caption={obtenirGroupe.c}, label={obtenirGroupe.c}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(int argc, char * argv[]){
+  pid_t pid, pgid; // PID et PGID du process courrant
+  pid_t ppid, ppgid; // PID et PGID du parent
+  // Process courrant
+  pid = getpid();
+  pgid = getpgrp();
+  // Process Parent
+  ppid = getppid();
+  ppgid = getpgid(ppid);
+  // Print PGID et PID du process courrant + parent
+  printf("(Process courrant) pid:%d pgid:%d\n", pid, pgid);
+  printf("(Process parent) ppid:%d pgid:%d\n", ppid, ppgid);
+
+  return 0;
+}
+\end{lstlisting}
+

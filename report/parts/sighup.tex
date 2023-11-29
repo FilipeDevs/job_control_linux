@@ -1,0 +1,76 @@
+\section{Le signal SIGHUP}
+
+Lorsqu’une session (c’est-à-dire le processus contrôleur) perd son terminal de contrôle ou le processus contrôleur se termine (fermeture de la fenêtre du terminal par exemple), tous les processus de la session perdent également leur association à ce terminal de contrôle. 
+\newline
+Pour les informer de cet évènement, le noyau envoie un signal (SIGHUP) au processus contrôleur, qui lui-même va créer une réaction en chaine en envoyant SIGHUP à tous les groupes de processus que lui-même a créé, à noter que ce signal ne sera pas envoyé à des groupes de processus (jobs) qui n’ont pas été créées par le processus contrôleur ! 
+\newline
+Le signal SIGHUP, par défaut termine un programme, mais celui-ci peut bien sur créer un handler, et continuer à s’exécuter (pour faire des opérations de nettoyage par exemple). Le signal SIGCONT peut éventuellement être envoyé s’il y avait des processus stoppés lorsque qu’il y a la dissociation du terminal de contrôle. 
+
+Pour mieux comprendre l'envoi du signal SIGHUP et dans quels circonstances celui-ci est envoyé, le programme ci-dessous demontre le concept :
+
+\begin{lstlisting}[caption={sighup.c}, label={sighup.c}]
+#include <stdio.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static void handleSigHup(int sig) {
+    printf("%ld: J'ai recu SIGHUP\n", (long) getpid());
+    fflush(stdout);
+}
+
+int main(int argc, char *argv[]) {
+
+    pid_t processFils;
+
+    struct sigaction sa;
+    sa.sa_handler = handleSigHup;
+
+    // Handler pour SIGHUP
+    if (sigaction(SIGHUP, &sa, NULL) == -1)
+        perror("Erreur sigaction");
+        fflush(stdout);
+
+    processFils = fork();
+
+    if(processFils > 0) {
+        printf("Je suis le processus parent : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+        (long) getppid(), (long) getpgrp(), (long) getsid(0));
+        fflush(stdout);
+    }
+
+    if(processFils < 0)
+        perror("Erreur fork du fils");
+        fflush(stdout);
+
+    if(processFils == 0){
+        /*
+         * Deplacer le fils dans un nouveau groupe si un parametre a ete passe
+         * (le shell n'a pas creee ce groupe, il n'est pas dans la liste de ses jobs !)
+         */
+        if(argc > 1) {
+            if (setpgid(0, 0) == -1)
+                perror("setpgid");
+            printf("Le fils a change de groupe !\n");
+            fflush(stdout);
+        }
+        printf("Je suis le processus fils : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+        (long) getppid(), (long) getpgrp(), (long) getsid(0));
+        fflush(stdout);
+    }
+
+    alarm(30); // Envoyer un SIGALARM, pour terminer le process si rien ne le termine
+
+
+    for(;;) { // Wait des signaux
+        pause();
+    }
+
+}
+\end{lstlisting}
+
+\subsection{Cas particuliers}
+
+
+\subsubsection{\textit{nohup}}
+Une commande particulière qui permet d’ignorer le signal SIGHUP, est la commande \textit{nohup}. Cette commande permet d’exécuter un processus/job et ignorer SIGHUP, même lorsque le processus de contrôle ou le terminal de contrôle se termine (comme expliqué précédemment ces deux évènements génèrent le signal SIGHUP). Tout output généré par le processus/job sera redirigé vers nohup.out. Et bien sûr si le processus/job essaye de lire depuis le terminal de contrôle alors que celui-ci n’existe plus, une erreur sera retourné.
