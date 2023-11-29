@@ -1,12 +1,14 @@
 \section{Le signal SIGHUP}
 
-Lorsqu’une session (c’est-à-dire le processus contrôleur) perd son terminal de contrôle ou le processus contrôleur se termine (fermeture de la fenêtre du terminal par exemple), tous les processus de la session perdent également leur association à ce terminal de contrôle. 
+Lorsqu'une session, représentée par le processus contrôleur, perd sa connexion avec le terminal de contrôle (par exemple, lorsque la fenêtre du terminal est fermée), tous les processus de cette session perdent leur association avec le terminal.
+Pour informer ces processus de cet événement, le noyau envoie un signal, SIGHUP, au processus contrôleur. Ce dernier déclenche ensuite une réaction en chaîne en transmettant le signal SIGHUP à tous les groupes de processus qu'il a créés. 
+Il est important de noter que ce signal n'est pas envoyé aux groupes de processus (jobs) qui n'ont pas été créés par le processus contrôleur.
 \newline
-Pour les informer de cet évènement, le noyau envoie un signal (SIGHUP) au processus contrôleur, qui lui-même va créer une réaction en chaine en envoyant SIGHUP à tous les groupes de processus que lui-même a créé, à noter que ce signal ne sera pas envoyé à des groupes de processus (jobs) qui n’ont pas été créées par le processus contrôleur ! 
+Par défaut, le signal SIGHUP provoque la terminaison d'un programme. Cependant, un programme peut créer un gestionnaire (handler) pour ce signal, lui permettant de continuer son exécution et d'effectuer des opérations de nettoyage, par exemple.
+ Si des processus étaient arrêtés lorsque la dissociation du terminal de contrôle a eu lieu, le signal SIGCONT peut éventuellement être envoyé pour les réactiver.
 \newline
-Le signal SIGHUP, par défaut termine un programme, mais celui-ci peut bien sur créer un handler, et continuer à s’exécuter (pour faire des opérations de nettoyage par exemple). Le signal SIGCONT peut éventuellement être envoyé s’il y avait des processus stoppés lorsque qu’il y a la dissociation du terminal de contrôle. 
-
-Pour mieux comprendre l'envoi du signal SIGHUP et dans quels circonstances celui-ci est envoyé, le programme ci-dessous demontre le concept :
+Pour une meilleure compréhension du signal SIGHUP et des circonstances dans lesquelles il est déclenché, le programme ci-dessous illustre le concept. Le programme vise à créer un processus enfant, mettre en pause le parent et l'enfant pour capturer 
+le signal SIGHUP. Si un argument facultatif est fourni en ligne de commande, l'enfant rejoint un nouveau groupe de processus dans la même session. Le but est de démontrer que le shell ne transmet pas SIGHUP à un groupe de processus non créé par lui. 
 
 \begin{lstlisting}[caption={sighup.c}, label={sighup.c}]
 #include <stdio.h>
@@ -22,17 +24,14 @@ static void handleSigHup(int sig) {
 int main(int argc, char *argv[]) {
 
     pid_t processFils;
-
     struct sigaction sa;
     sa.sa_handler = handleSigHup;
-
     // Handler pour SIGHUP
     if (sigaction(SIGHUP, &sa, NULL) == -1)
         perror("Erreur sigaction");
         fflush(stdout);
 
     processFils = fork();
-
     if(processFils > 0) {
         printf("Je suis le processus parent : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
         (long) getppid(), (long) getpgrp(), (long) getsid(0));
@@ -43,11 +42,9 @@ int main(int argc, char *argv[]) {
         perror("Erreur fork du fils");
         fflush(stdout);
 
-    if(processFils == 0){
-        /*
-         * Deplacer le fils dans un nouveau groupe si un parametre a ete passe
-         * (le shell n'a pas creee ce groupe, il n'est pas dans la liste de ses jobs !)
-         */
+    if(processFils == 0){  
+         // Deplacer le fils dans un nouveau groupe si un parametre a ete passe
+         // (le shell n'a pas creee ce groupe, il n'est pas dans la liste de ses jobs !)    
         if(argc > 1) {
             if (setpgid(0, 0) == -1)
                 perror("setpgid");
@@ -58,19 +55,149 @@ int main(int argc, char *argv[]) {
         (long) getppid(), (long) getpgrp(), (long) getsid(0));
         fflush(stdout);
     }
-
     alarm(30); // Envoyer un SIGALARM, pour terminer le process si rien ne le termine
-
-
     for(;;) { // Wait des signaux
         pause();
     }
-
 }
+\end{lstlisting}
+
+Pour utiliser ce programme, vous pouvez exécuter deux instances avec l'une sans arguments et l'autre avec un argument (le processus fils se déplacera dans un nouveau groupe). 
+Chaque instance aura son flux de sortie redirigé vers un fichier log différent pour conserver une trace des affichages. Ensuite, fermez la fenêtre du terminal.
+
+\begin{lstlisting}[language=bash]
+$ echo $$ # PID du shell
+5533
+$ ./sighup > logsAlpha.log 2>&1 &
+$ ./sighup a > logsBeta.log 2>&1 &
+\end{lstlisting}
+
+Si vous examinez les logs  du premier programme, le fichier contiendra des indications que les deux processus créés ont bien reçu SIGHUP.
+
+\begin{lstlisting}
+$ cat logsAlpha.log
+Je suis le processus fils : PID=5612; PPID=5611; PGID=5611; SID=5533 
+Je suis le processus parent : PID=5611; PPID=5533; PGID=5611; SID=5533 
+5611: J'ai recu SIGHUP
+5612: J'ai recu SIGHUP
+\end{lstlisting}
+
+Si vous examinez les logs du deuxième programme, le fichier contiendra des indications que seulement le parent a bien reçu SIGHUP,
+l'enfant étant déplacé dans un autre groupe non créé par le shell, celui-ci ne reçoit pas de SIGHUP.
+
+\begin{lstlisting}
+$ cat logsBeta.log
+Je suis le processus fils : PID=5614; PPID=5613; PGID=5614; SID=5533
+Je suis le processus parent : PID=5613; PPID=5533; PGID=5613; SID=5533
+5613: J'ai recu SIGHUP
 \end{lstlisting}
 
 \subsection{Cas particuliers}
 
+\subsubsection{Groupes de processus orphelins}
+
+Le signal SIGHUP n’est pas envoyé exclusivement quand il y a une perte d’accès au terminal de contrôle. Ce signal peut également envoyé par le noyau dans une situation assez particulière appelé groupes 
+de processus orphelins. Comme le nom l’indique ce sont des groupes de processus qui n’ont plus de parent existant. Ce genre de cas arrive lorsqu’un leader de groupe de processus se termine avant ses membres de 
+ce groupe. 
+\newline
+C’est un cas important à gérer puisque si le processus leader de ce groupe se termine, le processus contrôleur (le shell) retire ce groupe de sa liste de jobs, ce qui veut dire que plus aucun processus veille 
+sur les membres de ce groupe ! C’est assez problématique puisque si par hasard des membres de ce groupe de processus orphelin était stoppé, il n’y a plus aucun moyen de le remettre à s’exécuter. Même l’adoption par 
+init n’aiderait pas dans ce cas, puisqu’il gère que les zombies et non les processus stoppés.
+\newline
+Pour prévenir à ce problème le noyau refait usage de SIGHUP. Lorsqu’un groupe de processus devient orphelin le noyau envoie SIGHUP à tous les membres de ce groupe pour les informer des leurs situation, un signal 
+SIGCONT peut être aussi envoyé si un des membres de ce groupe était stoppé, pour s’assurer qu’il reprenne son exécution. 
+\newline
+\newline
+Pour une meilleure compréhension de ce cas particulier et les circonstances dans lesquelles il est déclenché, le programme ci-dessous illustre le concept.
+Le programme mets en place des gestionnaires de signaux pour SIGHUP et SIGCONT. Le programme crée ensuite deux processus fils, chaque fils se stoppe juste aprés sa création.
+\newline
+Une fois que tous les processus fils sont créés, le processus parent attend quelques secondes pour permettre aux fils de s'initialiser. Il quitte ensuite, à ce moment le groupe de processus contenant les fils devient orphelin. 
+Si l'un des fils reçoit un signal en conséquence de cette situation, le gestionnaire de signal est invoqué, affichant l'identifiant du processus fils et le signal en question.
+
+\begin{lstlisting}[caption={sighupOrphelins.c}, label={sighupOrphelins.c}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static void handleSigHupSigCont(int sig) {
+    if(sig == 1) {
+        printf("%ld: J'ai recu SIGHUP\n", (long) getpid());
+    } else {
+        printf("%ld: J'ai recu SIGCONT\n", (long) getpid());
+    }
+}
+
+int main(void) {
+
+    pid_t processFils;
+    struct sigaction sa;
+    sa.sa_handler = handleSigHupSigCont;
+
+    printf("Je suis le processus parent : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+                    (long) getppid(), (long) getpgrp(), (long) getsid(0));
+
+    // Handler pour SIGHUP
+    if (sigaction(SIGHUP, &sa, NULL) == -1)
+        perror("Erreur sigaction SIGHUP");
+
+     // Handler pour SIGCONT
+    if (sigaction(SIGCONT, &sa, NULL) == -1)
+        perror("Erreur sigaction SIGCONT");
+
+    for(int i = 0; i < 2; i++) {
+        switch (fork()) {
+            case -1:
+                perror("Erreur fork");
+            case 0:
+                printf("Je suis un processus fils et je vais me stopper : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+                    (long) getppid(), (long) getpgrp(), (long) getsid(0));
+
+                raise(SIGSTOP); // Stopper fils
+                exit(0);
+            default:
+                break;
+        }
+    }
+
+    sleep(3); // Sleep parent pour donner chance aux fils de s'exec
+    printf("Je suis le parent PID=%ld; mes fils vont devenir un groupe de process orphelins....\n", (long) getpid());
+    exit(0);
+}
+\end{lstlisting}
 
 \subsubsection{\textit{nohup}}
-Une commande particulière qui permet d’ignorer le signal SIGHUP, est la commande \textit{nohup}. Cette commande permet d’exécuter un processus/job et ignorer SIGHUP, même lorsque le processus de contrôle ou le terminal de contrôle se termine (comme expliqué précédemment ces deux évènements génèrent le signal SIGHUP). Tout output généré par le processus/job sera redirigé vers nohup.out. Et bien sûr si le processus/job essaye de lire depuis le terminal de contrôle alors que celui-ci n’existe plus, une erreur sera retourné.
+
+La commande spéciale \textit{nohup} offre la possibilité d'ignorer le signal SIGHUP lors de l'exécution d'un processus ou d'un job. Cette commande permet au processus de 
+continuer son exécution même si le processus de contrôle ou le terminal de contrôle se termine. Comme mentionné précédemment, la fin de ces deux événements génère le signal SIGHUP. 
+Toute sortie générée par le processus sera redirigée vers le fichier \textit{nohup.out}. Cependant, si le processus tente de lire depuis le terminal de contrôle après sa disparition, une erreur sera signalée.
+
+Pour illustrer l'utilisation de \textit{nohup}, considérons un petit script nommé "scriptBidon.sh". Ce script affiche simplement la date et l'heure toutes les 3 secondes. En le lançant en arrière-plan, puis 
+en affichant la liste des jobs du shell, on peut observer qu'il continue à s'exécuter. La commande 'ps' nous montre également que le processus est attaché à un terminal nommé \texttt{pts/0}.
+
+\begin{lstlisting}
+$ nohup ./long_running.sh &
+[1] 571215
+nohup: ignoring input and appending output to 'nohup.out'                              
+$ jobs -l
+[1]  + 571215 running    nohup ./long_running.sh
+$ ps -ef | grep '[l]ong'
+kent   566207  565675  0 18:46 pts/0    00:00:00 /bin/bash ./long_running.sh
+\end{lstlisting}
+
+En fermant ensuite le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes nous montrent que le script continue son exécution, ayant ignoré le signal SIGHUP, 
+mais n'est plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal de contrôle).
+
+\begin{lstlisting}
+$ ps -ef | grep '[l]ong'
+kent   566207       1  0 18:59  ?    00:00:00 /bin/bash ./long_running.sh
+\end{lstlisting}
+
+
+
+
+\subsubsection{\textit{disown}}
+
+
+

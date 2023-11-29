@@ -12,11 +12,9 @@ static void handleSigHupSigCont(int sig) {
     }
 }
 
-
 int main(void) {
 
     pid_t processFils;
-
     struct sigaction sa;
     sa.sa_handler = handleSigHupSigCont;
 
@@ -27,11 +25,9 @@ int main(void) {
     if (sigaction(SIGHUP, &sa, NULL) == -1)
         perror("Erreur sigaction SIGHUP");
 
-
      // Handler pour SIGCONT
     if (sigaction(SIGCONT, &sa, NULL) == -1)
         perror("Erreur sigaction SIGCONT");
-
 
     for(int i = 0; i < 2; i++) {
         switch (fork()) {
