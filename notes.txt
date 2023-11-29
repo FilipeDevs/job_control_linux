@@ -12,6 +12,8 @@ Modifications à apporter au rapport :
 	le dit "on doit me croire sur parole", il faut donc des demos pour illustrer ca et justifier mes
 	explcations (cfr demos : 703 + 706)
 
+	=> Groupes Orphelins : Rajouter schema illustrant la rupture du pere et son groupe
+
 	=> SIGHUP : parler des exceptions càd expliquer quelques commandes/situations ou sighup ne sera pas
 	envoyé/recu (nohup, hupnoexit shell interactif login, disown ?)   
 		=> disown : interressant à parler !
