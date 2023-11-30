@@ -111,8 +111,21 @@ SIGCONT peut être aussi envoyé si un des membres de ce groupe était stoppé, 
 Pour une meilleure compréhension de ce cas particulier et les circonstances dans lesquelles il est déclenché, le programme ci-dessous illustre le concept.
 Le programme mets en place des gestionnaires de signaux pour SIGHUP et SIGCONT. Le programme crée ensuite deux processus fils, chaque fils se stoppe juste aprés sa création.
 \newline
-Une fois que tous les processus fils sont créés, le processus parent attend quelques secondes pour permettre aux fils de s'initialiser. Il quitte ensuite, à ce moment le groupe de processus contenant les fils devient orphelin. 
-Si l'un des fils reçoit un signal en conséquence de cette situation, le gestionnaire de signal est invoqué, affichant l'identifiant du processus fils et le signal en question.
+Une fois que tous les processus fils sont créés, le processus parent attend quelques secondes pour permettre aux fils de s'initialiser. Il quitte ensuite, à ce moment le groupe de processus contenant les fils devient donc orphelin. 
+\newline
+Une éxécution de ce programme entraine un résultat similaire à celui-ci :
+\begin{lstlisting}
+$ ./sighupOrphelins
+Je suis le process parent: PID=1005; PPID=942; PGID=1005: SID=942
+Je suis un process fils, je vais me stopper: PID=1007; PPID=1005; PGID=1005: SID=942
+Je suis un process fils, je vais me stopper: PID=1006; PPID=1005; PGID=1005: SID=942
+Je suis le parent PID=1005; mes fils vont devenir un groupe orphelin...
+1007 : J'ai recu SIGCONT
+1007 : J'ai recu SIGHUP
+1006 : J'ai recu SIGCONT
+1006 : J'ai recu SIGHUP
+\end{lstlisting}
+
 
 \begin{lstlisting}[caption={sighupOrphelins.c}, label={sighupOrphelins.c}]
 #include <stdio.h>

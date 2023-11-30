@@ -18,7 +18,7 @@ int main(void) {
     struct sigaction sa;
     sa.sa_handler = handleSigHupSigCont;
 
-    printf("Je suis le processus parent : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+    printf("Je suis le process parent: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
                     (long) getppid(), (long) getpgrp(), (long) getsid(0));
 
     // Handler pour SIGHUP
@@ -34,7 +34,7 @@ int main(void) {
             case -1:
                 perror("Erreur fork");
             case 0:
-                printf("Je suis un processus fils et je vais me stopper : PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+                printf("Je suis un process fils, je vais me stopper: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
                     (long) getppid(), (long) getpgrp(), (long) getsid(0));
 
                 raise(SIGSTOP); // Stopper fils
@@ -45,6 +45,6 @@ int main(void) {
     }
 
     sleep(3); // Sleep parent pour donner chance aux fils de s'exec
-    printf("Je suis le parent PID=%ld; mes fils vont devenir un groupe de process orphelins....\n", (long) getpid());
+    printf("Je suis le parent PID=%ld; mes fils vont devenir un groupe orphelin....\n", (long) getpid());
     exit(0);
 }
