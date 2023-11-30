@@ -177,27 +177,46 @@ Pour illustrer l'utilisation de \textit{nohup}, considérons un petit script nom
 en affichant la liste des jobs du shell, on peut observer qu'il continue à s'exécuter. La commande 'ps' nous montre également que le processus est attaché à un terminal nommé \texttt{pts/0}.
 
 \begin{lstlisting}
-$ nohup ./long_running.sh &
-[1] 571215
+$ nohup ./scriptBidon.sh &
+[1] 5725
 nohup: ignoring input and appending output to 'nohup.out'                              
 $ jobs -l
-[1]  + 571215 running    nohup ./long_running.sh
-$ ps -ef | grep '[l]ong'
-kent   566207  565675  0 18:46 pts/0    00:00:00 /bin/bash ./long_running.sh
+[1]  + 5725 running    nohup ./scriptBidon.sh
+$ ps -ef | grep '[s]criptBidon'
+user0   5725  5656  0 18:46 pts/0    00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
 
-En fermant ensuite le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes nous montrent que le script continue son exécution, ayant ignoré le signal SIGHUP, 
+En fermant ensuite le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes nous montrent que le script continue son exécution, ayant ignoré le signal SIGHUP,
 mais n'est plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal de contrôle).
 
 \begin{lstlisting}
-$ ps -ef | grep '[l]ong'
-kent   566207       1  0 18:59  ?    00:00:00 /bin/bash ./long_running.sh
+$ ps -ef | grep '[s]criptBidon'
+kent   5725       1  0 18:59  ?    00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
-
-
-
 
 \subsubsection{\textit{disown}}
 
+Une autre commande intéressante pour "immuniser" un processus contre la réception du signal SIGHUP est \textit{disown}. Cette commande permet de retirer un processus de la liste des jobs du shell,
+tout en le laissant s'exécuter en arrière-plan.
 
+Prenons pour exemple le script "scriptBidon.sh". Lorsqu'on le lance en arrière-plan et qu'on affiche la liste des jobs du shell, on constate qu'il est toujours présent. Si, par la suite,
+nous utilisons \textit{disown} et réaffichons la liste des jobs, on observe que le processus a disparu, bien qu'il continue de s'exécuter. Ceci est confirmé en utilisant la commande "ps".
 
+\begin{lstlisting}
+$ ./scriptBidon.sh > blob.log &
+[1] 4595
+$ jobs -l
+[1] + 4595 running ./scriptBidon.sh > blob.log &
+$ disown
+$ jobs -l
+$ ps -ef | grep '[s]criptBidon'
+user0 4595 4352 0 11:03 pts/3 00:00:00 /bin/bash ./scriptBidon.sh > blob.log &
+\end{lstlisting}
+
+En fermant le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes révèlent que le script continue son exécution, ayant ignoré le signal SIGHUP. Il n'est cependant
+plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal).
+
+\begin{lstlisting}
+$ ps -ef | grep '[s]criptBidon'
+user0 4595 1 0 11:03 ? 00:00:00 /bin/bash ../scriptBidon.sh > blob.log &
+\end{lstlisting}

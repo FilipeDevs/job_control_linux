@@ -1,0 +1,82 @@
+\section{Processus en Background et Foreground}
+
+Le terminal de contrôle conserve la notion de groupe de processus en foreground. Au sein d'une session, un seul processus peut être en foreground
+à un moment donné, tous les autres groupes de processus de la session sont des groupes de processus en background. Le groupe de processus en foreground
+est le seul groupe de processus qui peut lire sur le terminal de contrôle. Lorsqu'un des caractères du terminal générateur de signal est tapé sur
+le terminal de contrôle, le pilote du terminal délivre le signal correspondant aux membres du groupe de processus d’en foreground.
+
+
+\subsection{L’accès au terminal}
+
+Comme expliqué précédemment, le groupe de processus en foreground est le seul groupe de processus qui peut lire sur le terminal de contrôle,
+cette restriction prévient de la concurrence pour l’input du terminal. Si un processus en background essaye de lire depuis le terminal, celui-ci
+se verra renvoyer un signal SIGINT, dont le comportement par défaut est de stopper le processus/job. Mais il est important de savoir que par défaut
+les groupes de processus en background peuvent écrire sur le terminal, mais si le flag TOSTOP est levé pour le terminal, toute tentative d’écriture
+dans le terminal se verra renvoyer le signal SIGTTOU.
+
+Pour illustrer ce comportement utilisions le programme "terminalAccess". C'est un simple programme qui fait la meme chose que un "cat", c'est à dire
+qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "Enter".
+
+\begin{lstlisting}[caption={terminalAccess.c}, label={terminalAccess.c}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static void handleSIGTTIN(int sig) {
+    printf("%ld: J'ai recu SIGTTIN\n", (long) getpid());
+}
+int main(void) {
+	struct sigaction sa;
+	sa.sa_handler = handleSIGTTIN;
+	printf("Je suis le processus: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+                    (long) getppid(), (long) getpgrp(), (long) getsid(0));
+
+	// Handler pour SIGTTIN
+    	if (sigaction(SIGTTIN, &sa, NULL) == -1)
+        	perror("Erreur sigaction SIGINT");
+
+	char buffer[1024];
+	long n;
+
+	printf("Je vais lire depuis le terminal...\n");
+	printf("Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...\n");
+	while(1) {
+		n = read(STDIN_FILENO, buffer, sizeof(buffer));
+		if(n < 0) {
+			perror("Erreur dans read");
+			break;
+		}
+
+		write(STDOUT_FILENO, buffer, n);
+	}
+	return 0;
+}
+\end{lstlisting}
+
+Si nous l'éxécutons en foreground rien de particulier se passe, le programme marche correctement. Par contre si celui-ci s'éxécute en background, etant donné que
+le processus sera en background il n'aura plus accés en stdin au terminal, le signal SIGTTIN sera retourné.
+Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal (c'est le cas dans ce programme de démonstration).
+
+\begin{lstlisting}[language=bash]
+$ ./terminalAccess &
+[1] 4623
+Je suis le processus: PID=4623; PPID=4595; PGID=4623; SID=4595
+Je vais lire depuis le terminal...
+Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...
+4623: J'ai recu SIGTTIN
+Erreur dans read: Interrupted system call
+[1]+  Fini                    ./terminalAccess
+\end{lstlisting}
+
+Un petit cas particulier à mettre en avant est qu'il est aussi possible d'envoyer un signal pour "interdire" un processus en background d'ecrire dans le terminal. Si flag TOSTOP est levé pour
+le terminal, toute tentative d'un processus en background en ecriture se verra renvoyer un signal SIGTTOU (par défaut ce signal stopppe le processus). Si le processus ignore ou gere ce signal,
+il pourra quand meme ecrire sur le terminal.
+
+\begin{lstlisting}[language=bash]
+$ stty tostop
+$ date &
+[1] 4725
+[1]+  Stopped               date
+\end{lstlisting}

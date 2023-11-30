@@ -22,6 +22,3 @@ Modifications à apporter au rapport :
 		n'est plus dans la liste de jobs du shell) par disown ne va pas recevoir sighup et il continuera à tourner
 		par contre l'accés au terminal est coupé donc s'il essaye d'y acceder (stdin ou stdout) il recevra une erreur !
 		=> Pour visualiser : regarder tuto baeldung linux job control disown no hup
-
-
-

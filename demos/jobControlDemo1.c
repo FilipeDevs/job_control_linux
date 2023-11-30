@@ -44,7 +44,7 @@ int main (void) {
 	if (sigaction(SIGCONT, &sa, NULL) == -1)
         perror("Erreur sigaction SIGCONT");
 
-    foreground_group = tcgetpgrp(STDIN_FILENO);
+    foreground_group = tcgetpgrp(STDIN_FILENO); // Prendre le groupe en foreground actuel
     printf("Groupe de processus en Foreground actuel : %d\n", foreground_group);
     if(foreground_group == getpgrp()) {
         printf("Je fais partie du groupe en foreground, j'ai accès au terminal en stdin/stdout\n");

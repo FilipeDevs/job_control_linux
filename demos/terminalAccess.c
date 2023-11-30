@@ -15,10 +15,9 @@ int main(void) {
 	printf("Je suis le processus: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
                     (long) getppid(), (long) getpgrp(), (long) getsid(0));
 
-	// Handler pour SIGHUP
+	// Handler pour SIGTTIN
     	if (sigaction(SIGTTIN, &sa, NULL) == -1)
         	perror("Erreur sigaction SIGINT");
-
 
 	char buffer[1024];
 	long n;
