@@ -1,59 +1,47 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <unistd.h>
-#include <termios.h>
-#include <stdlib.h>
 
-
-/*
- * Ce programme a pour but d'illustrer les signaux envoyés par les commandes(fg et bg) de gestion
- * de travaux dans un contexte de shell supportant le job control, ansi que la notion de groupe
- * en foreground et groupe en background.
- *
- * Pour ce faire un handler pour SIGCONT est mis en place ansi que des prints montrant
- * le groupe en foreground actuel et le dans quel groupe (background ou foreground) le processus
- * il se trouve actuellement.
- */
-
-
-static pid_t foreground_group;
-
-static void handleSigCont(int sig) {
-    printf("%ld: J'ai reçu SIGCONT\n", (long) getpid());
-    printf("Je continue à m'éxécuter...\n");
-    foreground_group = tcgetpgrp(STDIN_FILENO);
-    printf("Groupe de processus en Foreground actuel : %d\n", foreground_group);
-    if(foreground_group == getpgrp()) {
-        printf("Je fais partie du groupe en foreground, j'ai accès au terminal en stdin/stdout\n");
-    } else {
-        printf("Je fais partie du groupe en background, j'ai accès au terminal en stdout\n");
-    }
+void sigint_handler(int signo) {
+	fprintf(stderr,"PID: %d: J'ai reçu SIGINT\n", getpid());
 }
 
+void sigtstp_handler(int signo) {
+	fprintf(stderr,"PID: %d: J'ai reçu SIGTSTP\n",
+    getpid(), getppid(), getpgrp(), getsid(0));
+	raise(SIGSTOP);  // Interompre le process
+}
 
-int main (void) {
+void sigcont_handler(int signo) {
+	fprintf(stderr,"PID: %d: J'ai reçu SIGCONT\n",
+    getpid(), getppid(), getpgrp(), getsid(0));
+	if (isatty(STDIN_FILENO) && (getpid() == getpgrp())) {
+    // Print groupe foreground ssi stdin est un terminal et que
+    // le process est un leader de groupe
+    	fprintf(stderr,"Groupe en foreground: %d\n", tcgetpgrp(STDIN_FILENO));
+	}
+}
 
-    printf("Je suis le processus: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
-           (long) getppid(), (long) getpgrp(), (long) getsid(0));
+int main() {
+	// Handlers pour SIGINT, SIGTSTP et SIGCONT
+	signal(SIGINT, sigint_handler);
+	signal(SIGTSTP, sigtstp_handler);
+	signal(SIGCONT, sigcont_handler);
 
-    struct sigaction sa;
-    sa.sa_handler = handleSigCont;
+    if (isatty(STDIN_FILENO) && (getpid() == getpgrp())) {
+    // Print groupe foreground ssi stdin est un terminal et que
+    // le process est un leader de groupe
+    	fprintf(stderr,"Groupe en foreground: %d\n", tcgetpgrp(STDIN_FILENO));
+	}
 
-    // Handler pour SIGCONT
-	if (sigaction(SIGCONT, &sa, NULL) == -1)
-        perror("Erreur sigaction SIGCONT");
+	fprintf(stderr,"Je suis le process: PID: %d, PPID: %d, PGID: %d, SID: %d\n",
+    getpid(), getppid(), getpgrp(), getsid(0));
 
-    foreground_group = tcgetpgrp(STDIN_FILENO); // Prendre le groupe en foreground actuel
-    printf("Groupe de processus en Foreground actuel : %d\n", foreground_group);
-    if(foreground_group == getpgrp()) {
-        printf("Je fais partie du groupe en foreground, j'ai accès au terminal en stdin/stdout\n");
-    } else {
-        printf("Je fais partie du groupe en background, j'ai accès au terminal en stdout\n");
-    }
+	while (1) {
+    	pause();
+	}
 
-    while(1)
-        pause();
-
-    return 0;
+	return 0;
 }

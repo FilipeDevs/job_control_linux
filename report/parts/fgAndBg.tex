@@ -59,7 +59,7 @@ Si nous l'éxécutons en foreground rien de particulier se passe, le programme m
 le processus sera en background il n'aura plus accés en stdin au terminal, le signal SIGTTIN sera retourné.
 Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal (c'est le cas dans ce programme de démonstration).
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[style=blackstyle]
 $ ./terminalAccess &
 [1] 4623
 Je suis le processus: PID=4623; PPID=4595; PGID=4623; SID=4595
@@ -74,7 +74,7 @@ Un petit cas particulier à mettre en avant est qu'il est aussi possible d'envoy
 le terminal, toute tentative d'un processus en background en ecriture se verra renvoyer un signal SIGTTOU (par défaut ce signal stopppe le processus). Si le processus ignore ou gere ce signal,
 il pourra quand meme ecrire sur le terminal.
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[style=blackstyle]
 $ stty tostop
 $ date &
 [1] 4725
@@ -99,7 +99,7 @@ Remarques :
     \item Ces fonctions sont particulièrement utiles dans le contexte des shells de contrôle de jobs, permettant aux shells de gérer les processus en foreground et en background associés à un terminal.
 \end{itemize}
 
-Une démonstration illustrant une de ces fonctions sera vu plus tard.
+Une démonstration illustrant une de ces fonctions sera vu plus tard (Controle de jobs).
 
 
 

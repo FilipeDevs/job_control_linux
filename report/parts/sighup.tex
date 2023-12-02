@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 Pour utiliser ce programme, vous pouvez exécuter deux instances avec l'une sans arguments et l'autre avec un argument (le processus fils se déplacera dans un nouveau groupe). 
 Chaque instance aura son flux de sortie redirigé vers un fichier log différent pour conserver une trace des affichages. Ensuite, fermez la fenêtre du terminal.
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[style=blackstyle]
 $ echo $$ # PID du shell
 5533
 $ ./sighup > logsAlpha.log 2>&1 &
@@ -74,7 +74,7 @@ $ ./sighup a > logsBeta.log 2>&1 &
 
 Si vous examinez les logs  du premier programme, le fichier contiendra des indications que les deux processus créés ont bien reçu SIGHUP.
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ cat logsAlpha.log
 Je suis le processus fils : PID=5612; PPID=5611; PGID=5611; SID=5533 
 Je suis le processus parent : PID=5611; PPID=5533; PGID=5611; SID=5533 
@@ -85,7 +85,7 @@ Je suis le processus parent : PID=5611; PPID=5533; PGID=5611; SID=5533
 Si vous examinez les logs du deuxième programme, le fichier contiendra des indications que seulement le parent a bien reçu SIGHUP,
 l'enfant étant déplacé dans un autre groupe non créé par le shell, celui-ci ne reçoit pas de SIGHUP.
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ cat logsBeta.log
 Je suis le processus fils : PID=5614; PPID=5613; PGID=5614; SID=5533
 Je suis le processus parent : PID=5613; PPID=5533; PGID=5613; SID=5533
@@ -114,7 +114,7 @@ Le programme mets en place des gestionnaires de signaux pour SIGHUP et SIGCONT. 
 Une fois que tous les processus fils sont créés, le processus parent attend quelques secondes pour permettre aux fils de s'initialiser. Il quitte ensuite, à ce moment le groupe de processus contenant les fils devient donc orphelin. 
 \newline
 Une éxécution de ce programme entraine un résultat similaire à celui-ci :
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ ./sighupOrphelins
 Je suis le process parent: PID=1005; PPID=942; PGID=1005: SID=942
 Je suis un process fils, je vais me stopper: PID=1007; PPID=1005; PGID=1005: SID=942
@@ -189,7 +189,7 @@ Toute sortie générée par le processus sera redirigée vers le fichier \textit
 Pour illustrer l'utilisation de \textit{nohup}, considérons un petit script nommé "scriptBidon.sh". Ce script affiche simplement la date et l'heure toutes les 3 secondes. En le lançant en arrière-plan, puis 
 en affichant la liste des jobs du shell, on peut observer qu'il continue à s'exécuter. La commande 'ps' nous montre également que le processus est attaché à un terminal nommé \texttt{pts/0}.
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ nohup ./scriptBidon.sh &
 [1] 5725
 nohup: ignoring input and appending output to 'nohup.out'                              
@@ -202,7 +202,7 @@ user0   5725  5656  0 18:46 pts/0    00:00:00 /bin/bash ./scriptBidon.sh
 En fermant ensuite le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes nous montrent que le script continue son exécution, ayant ignoré le signal SIGHUP,
 mais n'est plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal de contrôle).
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ ps -ef | grep '[s]criptBidon'
 kent   5725       1  0 18:59  ?    00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
@@ -215,7 +215,7 @@ tout en le laissant s'exécuter en arrière-plan.
 Prenons pour exemple le script "scriptBidon.sh". Lorsqu'on le lance en arrière-plan et qu'on affiche la liste des jobs du shell, on constate qu'il est toujours présent. Si, par la suite,
 nous utilisons \textit{disown} et réaffichons la liste des jobs, on observe que le processus a disparu, bien qu'il continue de s'exécuter. Ceci est confirmé en utilisant la commande "ps".
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ ./scriptBidon.sh > blob.log &
 [1] 4595
 $ jobs -l
@@ -229,7 +229,7 @@ user0 4595 4352 0 11:03 pts/3 00:00:00 /bin/bash ./scriptBidon.sh > blob.log &
 En fermant le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes révèlent que le script continue son exécution, ayant ignoré le signal SIGHUP. Il n'est cependant
 plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal).
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ ps -ef | grep '[s]criptBidon'
 user0 4595 1 0 11:03 ? 00:00:00 /bin/bash ../scriptBidon.sh > blob.log &
 \end{lstlisting}

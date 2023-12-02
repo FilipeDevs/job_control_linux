@@ -14,14 +14,12 @@ Il est important de noter que, d'une part, un leader de groupe de processus exis
 Le code ci-dessous, illustre la création d'une nouvelle session, pour démontrer que cette nouvelle session n'a plus d'accés au terminal de contrôle, le programme essaye d'ouvrir
 le terminal de contrôle associé à la session. Une éxécution de ce programme entraine un résultat similaire à celui-ci  :
 
-\begin{lstlisting}
+\begin{lstlisting}[style=blackstyle]
 $ ./creationSession
 Avant nouvelle session : PID=1023, PGID=1022, SID=944
 Apres nouvelle session : PID=1023, PGID=1023, SID=1023
 open /dev/tty : No such device or address
 \end{lstlisting}
-
-
 
 \begin{lstlisting}[caption={creationSession.c}, label={creationSession.c}]
 #include <unistd.h>
