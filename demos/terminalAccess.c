@@ -16,9 +16,11 @@ int main(void) {
                     (long) getppid(), (long) getpgrp(), (long) getsid(0));
 
 	// Handler pour SIGTTIN
-    	if (sigaction(SIGTTIN, &sa, NULL) == -1)
-        	perror("Erreur sigaction SIGINT");
-
+    if (sigaction(SIGTTIN, &sa, NULL) == -1) {
+		perror("Erreur sigaction SIGINT");
+		exit(-1);
+	}
+        
 	char buffer[1024];
 	long n;
 

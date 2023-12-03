@@ -48,25 +48,23 @@ int main() {
 
 \subsubsection{Contraintes dans le contrôle de jobs}
 
-La restriction interdisant à un processus de modifier l'identifiant du groupe de processus (PGID) de l'un de ses enfants après qu'il ait effectué un exec() influence la conception des shells de contrôle de jobs.
+La restriction interdisant à un processus de modifier l'identifiant du groupe de processus (PGID) de l'un de ses enfants après qu'il ait effectué un \textit{exec()} influence la conception des shells de contrôle de jobs.
 \newline
-Il est essentiel de souligner que tous les processus d'un job (une commande ou un pipeline) doivent être regroupés dans un unique groupe de processus. Cela permet au shell d'envoyer simultanément des signaux de contrôle de job à tous les membres du groupe de processus. Naturellement, cette étape doit être réalisée avant l'émission de tout signal de contrôle de tâche !
+Il est essentiel de souligner que tous les processus d'un job (une commande ou un pipeline) doivent être regroupés dans un unique groupe de processus. Cela permet au shell d'envoyer simultanément des signaux de contrôle de job à tous les membres du groupe de processus. Naturellement, cette étape doit être réalisée avant l'émission de tout signal de contrôle de job !
 \newline
 Ainsi, chaque job (processus enfant) doit être assigné à un groupe de processus avant l'exécution d'un programme, car le programme lui-même n'a pas connaissance des modifications de l'identifiant du groupe de processus.
 \newline
-Pour chaque processus dans la tâche, soit le shell (parent), soit le job (enfant) pourrait utiliser setpgid() pour modifier l'identifiant du groupe de processus du job (enfant). Toutefois, en raison de l'imprévisibilité de l'ordonnanceur après un fork(), il n'est pas garanti que le shell changera l'identifiant du groupe de processus du nouveau job avant que ce dernier n'effectue un exec(). De même, on ne peut pas être assuré que le job (enfant) modifiera son identifiant de groupe de processus avant que le shell (parent) ne tente d'envoyer des signaux de contrôle de job. Par conséquent, les shells de contrôle de job sont conçus pour que le shell lui-même et le job (processus enfant) appellent tous deux setpgid() afin de modifier l'identifiant du groupe de processus du job à la même valeur immédiatement après un fork(). Le parent ignore toute occurrence de l'erreur EACCES lors de l'appel à setpgid().
+Pour chaque processus dans le job, soit le shell (parent), soit le job (enfant) pourrait utiliser \textit{setpgid()} pour modifier l'identifiant du groupe de processus du job (enfant). Toutefois, en raison de l'imprévisibilité de l'ordonnanceur après un fork(), il n'est pas garanti que le shell changera l'identifiant du groupe de processus du nouveau job avant que ce dernier n'effectue un exec(). De même, on ne peut pas être assuré que le job (enfant) modifiera son identifiant de groupe de processus avant que le shell (parent) ne tente d'envoyer des signaux de contrôle de job. Par conséquent, les shells de contrôle de job sont conçus pour que le shell lui-même et le job (processus enfant) appellent tous deux setpgid() afin de modifier l'identifiant du groupe de processus du job à la même valeur immédiatement après un \textit{fork()}. Le parent ignore toute occurrence de l'erreur EACCES lors de l'appel à \textit{setpgid()}.
 \newline
 
 \subsection{L’appel système \textit{getpgrp()} }
-Chaque processus possède un identifiant de groupe de processus qui définit le groupe de processus auquel il appartient (PGID). Un nouveau processus hérite de l'identifiant de groupe de processus de son parent. Un processus peut obtenir son identifiant de groupe de processus en utilisant getpgrp(). Si la valeur renvoyée par getpgrp() correspond à l'ID du processus appelant, cela signifie que ce processus est le leader de son groupe de processus.
+Chaque processus possède un identifiant de groupe de processus qui définit le groupe de processus auquel il appartient (PGID). Un nouveau processus hérite de l'identifiant de groupe de processus de son parent. Un processus peut obtenir son identifiant de groupe de processus en utilisant  \textit{getpgrp()}. Si la valeur renvoyée par  \textit{getpgrp()} correspond au PID du processus appelant, cela signifie que ce processus est le leader de son groupe de processus.
 \newline
 \begin{lstlisting}
 #include <unistd.h>
 
 pid_t getpgrp(void);
 \end{lstlisting}
-
-
 
 \subsubsection{Obtenir le groupe}
 

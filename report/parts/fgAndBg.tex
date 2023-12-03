@@ -1,7 +1,7 @@
 \section{Processus en Background et Foreground}
 
-Le terminal de contrôle conserve la notion de groupe de processus en foreground. Au sein d'une session, un seul processus peut être en foreground
-à un moment donné, tous les autres groupes de processus de la session sont des groupes de processus en background. Le groupe de processus en foreground
+Le terminal de contrôle conserve la notion de groupe de processus en foreground (avant-plan). Au sein d'une session, un seul processus peut être en foreground
+à un moment donné, tous les autres groupes de processus de la session sont des groupes de processus en background (arrière-plan). Le groupe de processus en foreground
 est le seul groupe de processus qui peut lire sur le terminal de contrôle. Lorsqu'un des caractères du terminal générateur de signal est tapé sur
 le terminal de contrôle, le pilote du terminal délivre le signal correspondant aux membres du groupe de processus d’en foreground.
 
@@ -11,11 +11,10 @@ le terminal de contrôle, le pilote du terminal délivre le signal correspondant
 Comme expliqué précédemment, le groupe de processus en foreground est le seul groupe de processus qui peut lire sur le terminal de contrôle,
 cette restriction prévient de la concurrence pour l’input du terminal. Si un processus en background essaye de lire depuis le terminal, celui-ci
 se verra renvoyer un signal SIGINT, dont le comportement par défaut est de stopper le processus/job. Mais il est important de savoir que par défaut
-les groupes de processus en background peuvent écrire sur le terminal, mais si le flag TOSTOP est levé pour le terminal, toute tentative d’écriture
-dans le terminal se verra renvoyer le signal SIGTTOU.
-
-Pour illustrer ce comportement utilisions le programme "terminalAccess". C'est un simple programme qui fait la meme chose que un "cat", c'est à dire
-qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "Enter".
+les groupes de processus en background peuvent écrire sur le terminal.
+\newline
+Pour illustrer ce comportement utilisions le programme \textit{terminalAccess}. C'est un simple programme qui fait la meme chose que un \textit{cat}, c'est à dire
+qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "Enter". Il gére aussi le signal SIGTTIN.
 
 \begin{lstlisting}[caption={terminalAccess.c}, label={terminalAccess.c}]
 #include <stdio.h>
@@ -34,29 +33,31 @@ int main(void) {
                     (long) getppid(), (long) getpgrp(), (long) getsid(0));
 
 	// Handler pour SIGTTIN
-    	if (sigaction(SIGTTIN, &sa, NULL) == -1)
-        	perror("Erreur sigaction SIGINT");
-
+    if (sigaction(SIGTTIN, &sa, NULL) == -1) {
+		perror("Erreur sigaction SIGINT");
+		exit(-1);
+	}
+        
 	char buffer[1024];
 	long n;
 
 	printf("Je vais lire depuis le terminal...\n");
 	printf("Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...\n");
 	while(1) {
-		n = read(STDIN_FILENO, buffer, sizeof(buffer));
+		n = read(STDIN_FILENO, buffer, sizeof(buffer)); 
 		if(n < 0) {
 			perror("Erreur dans read");
 			break;
-		}
-
+		}			
+		
 		write(STDOUT_FILENO, buffer, n);
-	}
+	}	
 	return 0;
 }
 \end{lstlisting}
 
 Si nous l'éxécutons en foreground rien de particulier se passe, le programme marche correctement. Par contre si celui-ci s'éxécute en background, etant donné que
-le processus sera en background il n'aura plus accés en stdin au terminal, le signal SIGTTIN sera retourné.
+le processus sera en background il n'aura plus accés en \textit{stdin} au terminal, le signal SIGTTIN sera retourné.
 Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal (c'est le cas dans ce programme de démonstration).
 
 \begin{lstlisting}[style=blackstyle]
@@ -70,15 +71,20 @@ Erreur dans read: Interrupted system call
 [1]+  Fini                    ./terminalAccess
 \end{lstlisting}
 
-Un petit cas particulier à mettre en avant est qu'il est aussi possible d'envoyer un signal pour "interdire" un processus en background d'ecrire dans le terminal. Si flag TOSTOP est levé pour
-le terminal, toute tentative d'un processus en background en ecriture se verra renvoyer un signal SIGTTOU (par défaut ce signal stopppe le processus). Si le processus ignore ou gere ce signal,
-il pourra quand meme ecrire sur le terminal.
+Un petit cas particulier à mettre en avant est qu'il est aussi possible d'envoyer un signal pour "interdire" à un processus en arrière-plan d'écrire dans le terminal. Si le flag TOSTOP est levé pour le terminal, 
+toute tentative d'un processus en arrière-plan d'écrire se verra renvoyer un signal SIGTTOU (par défaut, ce signal stoppe le processus). Si le processus ignore ou gère ce signal, il pourra quand 
+même écrire sur le terminal.
 
 \begin{lstlisting}[style=blackstyle]
 $ stty tostop
-$ date &
-[1] 4725
-[1]+  Stopped               date
+$ ./terminalAccess &
+[1] 4623
+Je suis le processus: PID=4623; PPID=4595; PGID=4623; SID=4595
+Je vais lire depuis le terminal...
+Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...
+4623: J'ai recu SIGTTIN
+Erreur dans read: Interrupted system call
+[1]+  Fini                    ./terminalAccess
 \end{lstlisting}
 
 \subsection{Fonctions \texttt{tcgetpgrp()} et \texttt{tcsetpgrp()}}
@@ -86,8 +92,8 @@ $ date &
 Les fonctions \texttt{tcgetpgrp()} et \texttt{tcsetpgrp()} jouent un rôle important dans la manipulation des groupes de processus associés à un terminal, notamment dans les shells de contrôle de jobs. Explorons ces fonctionsl :
 
 \begin{itemize}
-    \item \texttt{pid\_t tcgetpgrp(int fd)} : La fonction \texttt{tcgetpgrp()} est utilisée pour récupérer le groupe de processus en premier plan (foreground) associé à un terminal spécifique. En tant qu'argument,
- elle prend le descripteur de fichier \texttt{fd} qui est lié au terminal en question. La fonction retourne le PGID (Process Group ID) du groupe de processus en foreground associé au terminal.
+    \item \texttt{pid\_t tcgetpgrp(int fd)} : La fonction \texttt{tcgetpgrp()} est utilisée pour récupérer le groupe de processus en avant-plan (foreground) associé à un terminal spécifique. En tant qu'argument,
+ elle prend le descripteur de fichier \texttt{fd} qui est lié au terminal en question. La fonction retourne le PGID du groupe de processus en foreground associé au terminal.
 
     \item \texttt{int tcsetpgrp(int fd, pid\_t pgid)} : La fonction \texttt{tcsetpgrp()} est utilisée pour définir le groupe de processus en foreground associé à un terminal spécifique. Elle prend en argument le descripteur de fichier \texttt{fd} associé
  au terminal et le PGID du groupe de processus que l'on souhaite définir en foreground. Le retour de la fonction indique le succès ou l'échec de l'opération.
@@ -99,7 +105,7 @@ Remarques :
     \item Ces fonctions sont particulièrement utiles dans le contexte des shells de contrôle de jobs, permettant aux shells de gérer les processus en foreground et en background associés à un terminal.
 \end{itemize}
 
-Une démonstration illustrant une de ces fonctions sera vu plus tard (Controle de jobs).
+Une démonstration illustrant une de ces fonctions sera vu plus tard (Contrôle de jobs).
 
 
 

@@ -1,8 +1,0 @@
-\section{Aperçu}
-Le contrôle de jobs sous Linux repose sur l'organisation des processus en groupes et sessions. Les groupes de processus permettent de gérer efficacement les tâches, regroupant des processus ayant des identifiants de groupe de processus (PGID) communs. Chaque groupe a un leader, créant le groupe et définissant son PGID. La durée de vie du groupe commence avec sa création et se termine lorsque le dernier processus le quitte.
-\newline
-Les groupes de processus sont ensuite regroupés au sein de sessions, définies par des identifiants de session (SID). Une session est initiée par un leader de session, devenant le contrôleur du terminal et attribuant un terminal de contrôle à tous les processus de la session.
-\newline
-Dans le contexte du contrôle de jobs, le terminal de contrôle est crucial. Lorsqu'un utilisateur se connecte, le shell de connexion devient le leader de session et de groupe, contrôlant le terminal. Chaque commande/job lance un nouveau groupe de processus, avec la possibilité d'être en foreground ou background. Le leader de session reçoit des signaux du terminal, comme SIGHUP en cas de déconnexion.
-\newline
-Ce système offre une gestion flexible des jobs, avec la création de groupes de processus et de sessions pour optimiser le contrôle des interactions avec le terminal.

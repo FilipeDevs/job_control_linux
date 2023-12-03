@@ -7,7 +7,7 @@ Il est important de noter que ce signal n'est pas envoyé aux groupes de process
 Par défaut, le signal SIGHUP provoque la terminaison d'un programme. Cependant, un programme peut créer un gestionnaire (handler) pour ce signal, lui permettant de continuer son exécution et d'effectuer des opérations de nettoyage, par exemple.
  Si des processus étaient arrêtés lorsque la dissociation du terminal de contrôle a eu lieu, le signal SIGCONT peut éventuellement être envoyé pour les réactiver.
 \newline
-Pour une meilleure compréhension du signal SIGHUP et des circonstances dans lesquelles il est déclenché, le programme ci-dessous illustre le concept. Le programme vise à créer un processus enfant, mettre en pause le parent et l'enfant pour capturer 
+Pour une meilleure compréhension du signal SIGHUP et des circonstances dans lesquelles il est déclenché, le programme ci-dessous, \textit{sighup.c}, illustre le concept. Le programme vise à créer un processus enfant, mettre en pause le parent et l'enfant pour capturer 
 le signal SIGHUP. Si un argument facultatif est fourni en ligne de commande, l'enfant rejoint un nouveau groupe de processus dans la même session. Le but est de démontrer que le shell ne transmet pas SIGHUP à un groupe de processus non créé par lui. 
 
 \begin{lstlisting}[caption={sighup.c}, label={sighup.c}]
@@ -108,7 +108,7 @@ Pour prévenir à ce problème le noyau refait usage de SIGHUP. Lorsqu’un grou
 SIGCONT peut être aussi envoyé si un des membres de ce groupe était stoppé, pour s’assurer qu’il reprenne son exécution. 
 \newline
 \newline
-Pour une meilleure compréhension de ce cas particulier et les circonstances dans lesquelles il est déclenché, le programme ci-dessous illustre le concept.
+Pour une meilleure compréhension de ce cas particulier et les circonstances dans lesquelles il est déclenché, le programme ci-dessous, \textit{sighupOrphelins.c}, illustre le concept.
 Le programme mets en place des gestionnaires de signaux pour SIGHUP et SIGCONT. Le programme crée ensuite deux processus fils, chaque fils se stoppe juste aprés sa création.
 \newline
 Une fois que tous les processus fils sont créés, le processus parent attend quelques secondes pour permettre aux fils de s'initialiser. Il quitte ensuite, à ce moment le groupe de processus contenant les fils devient donc orphelin. 
@@ -186,8 +186,8 @@ La commande spéciale \textit{nohup} offre la possibilité d'ignorer le signal S
 continuer son exécution même si le processus de contrôle ou le terminal de contrôle se termine. Comme mentionné précédemment, la fin de ces deux événements génère le signal SIGHUP. 
 Toute sortie générée par le processus sera redirigée vers le fichier \textit{nohup.out}. Cependant, si le processus tente de lire depuis le terminal de contrôle après sa disparition, une erreur sera signalée.
 
-Pour illustrer l'utilisation de \textit{nohup}, considérons un petit script nommé "scriptBidon.sh". Ce script affiche simplement la date et l'heure toutes les 3 secondes. En le lançant en arrière-plan, puis 
-en affichant la liste des jobs du shell, on peut observer qu'il continue à s'exécuter. La commande 'ps' nous montre également que le processus est attaché à un terminal nommé \texttt{pts/0}.
+Pour illustrer l'utilisation de \textit{nohup}, considérons un petit script nommé \textit{scriptBidon.sh}. Ce script affiche simplement la date et l'heure toutes les 3 secondes. En le lançant en arrière-plan, puis 
+en affichant la liste des jobs du shell, on peut observer qu'il continue à s'exécuter. La commande \textit{ps.} nous montre également que le processus est attaché à un terminal nommé \texttt{pts/0}.
 
 \begin{lstlisting}[style=blackstyle]
 $ nohup ./scriptBidon.sh &
@@ -212,8 +212,8 @@ kent   5725       1  0 18:59  ?    00:00:00 /bin/bash ./scriptBidon.sh
 Une autre commande intéressante pour "immuniser" un processus contre la réception du signal SIGHUP est \textit{disown}. Cette commande permet de retirer un processus de la liste des jobs du shell,
 tout en le laissant s'exécuter en arrière-plan.
 
-Prenons pour exemple le script "scriptBidon.sh". Lorsqu'on le lance en arrière-plan et qu'on affiche la liste des jobs du shell, on constate qu'il est toujours présent. Si, par la suite,
-nous utilisons \textit{disown} et réaffichons la liste des jobs, on observe que le processus a disparu, bien qu'il continue de s'exécuter. Ceci est confirmé en utilisant la commande "ps".
+Prenons pour exemple le script \textit{scriptBidon.sh}. Lorsqu'on le lance en arrière-plan et qu'on affiche la liste des jobs du shell, on constate qu'il est toujours présent. Si, par la suite,
+nous utilisons \textit{disown} et réaffichons la liste des jobs, on observe que le processus a disparu, bien qu'il continue de s'exécuter. Ceci est confirmé en utilisant la commande \textit{ps}.
 
 \begin{lstlisting}[style=blackstyle]
 $ ./scriptBidon.sh > blob.log &

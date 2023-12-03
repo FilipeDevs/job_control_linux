@@ -1,5 +1,7 @@
 \section{Contrôle de jobs dans le shell}
-
+La section suivante explore les commandes et l'utilisation du contrôle de jobs dans le shell. 
+\newline
+\newline
 Lorsqu'une commande est suivie d'une esperluette (\&), elle s'exécute en background (arrière-plan). 
 Chaque travail en arrière-plan est identifié par un numéro unique attribué par le shell. Par exemple :
 
@@ -9,9 +11,7 @@ $ sleep 50 &
 $ sleep 55 &
 [2] 114	# Job 2 : process ls avec PID 114
 \end{lstlisting}
-Le numéro qui suit le numéro de travail est le PID processus créé pour exécuter la commande, 
-ou, dans le cas d'un pipeline, le PID du dernier processus du pipeline. Afin de faire référence à un job
-particulier la notation \texttt{} est nécessaire, ou "num" est le numéro de job assigné par le shell.
+Le numéro qui suit le numéro de travail est le PID processus créé pour exécuter la commande, ou, dans le cas d'un pipeline, le PID du dernier processus du pipeline. Afin de faire référence à un job particulier, la notation \verb|%num| est nécessaire, où "num" est le numéro de job assigné par le shell.
 \newline
 \newline
 La commande intégrée du shell \texttt{jobs} liste tous les jobs en arrière-plan :
@@ -23,7 +23,7 @@ $ jobs
 
 À ce stade, le shell est le processus en avant-plan pour le terminal. Comme seul un processus en avant-plan peut lire l'entrée du terminal et recevoir 
 des signaux générés par le terminal, il est parfois nécessaire de déplacer un travail en arrière-plan vers l'avant-plan. 
-Cela se fait en utilisant la commande intégrée du shell "fg" :
+Cela se fait en utilisant la commande intégrée du shell \texttt{fg} :
 \begin{lstlisting}[style=blackstyle]
 $ jobs
 $ fg %1
@@ -40,9 +40,7 @@ Tapez Control-Z
 [1]+ Stopped sleep 50 & 
 \end{lstlisting}
 
-Après avoir tapé Control-Z, le shell affiche la commande qui a été arrêtée en arrière-plan. Si nécessaire, nous pouvons utiliser la commande "fg"
-pour reprendre le travail en avant-plan, ou utiliser la commande "bg" pour le reprendre en arrière-plan. Dans les deux cas, le shell reprend le travail 
-arrêté en lui envoyant un signal SIGCONT :
+Après avoir tapé Control-Z, le shell affiche la commande qui a été arrêtée en arrière-plan. Si nécessaire, nous pouvons utiliser la commande \texttt{fg} pour reprendre le travail en avant-plan, ou utiliser la commande \texttt{bg} pour le reprendre en arrière-plan. Dans les deux cas, le shell reprend le travail arrêté en lui envoyant un signal SIGCONT :
 \begin{lstlisting}[style=blackstyle]
 $ bg %1
 [1]+ sleep 50 &  
@@ -136,10 +134,10 @@ Groupe en foreground: 2062
 Je suis le process: PID: 4510, PPID: 2062, PGID: 4510, SID: 2062
 \end{lstlisting}
 
-À partir du résultat ci-dessus, nous pouvons voir que le shell est le processus en foreground (tcgetpgrp())
+À partir du résultat ci-dessus, nous pouvons voir que le shell est le processus en foreground (\texttt{tcgetpgrp()})
 pour le terminal. On remarque aussi que tous les processus sont dans la même session que le shell et dans un groupe différent du shell.
 \newline
-Ramenons maintenant ce job en foreground à l'aide de "fg". Et tapons CTRL-C pour envoyer un signal SIGINT
+Ramenons maintenant ce job en foreground à l'aide de \texttt{fg}. Et tapons CTRL-C pour envoyer un signal SIGINT
 
 \begin{lstlisting}[style=blackstyle]
 $ fg
@@ -159,14 +157,13 @@ Utilisons maintenant SIGTSTP à l'aide de Control-Z
 # Tapez Control-Z pour generer SIGTSTP
 PID: 4511: J'ai recu SIGTSTP
 PID: 4510: J'ai recu SIGTSTP
-Groupe en foreground: 4510
 [1]+  Stopped             	./job | ./job
 \end{lstlisting}
 
 Tous les processus du job sont maintenant à l'arrêt. Le shell devient donc le groupe en foreground et a la main
 sur le terminal.
 \newline
-Relançons maintenant le job en background à l'aide de "bg".
+Relançons maintenant le job en background à l'aide de \texttt{bg}.
 
 \begin{lstlisting}[style=blackstyle]
 $ bg
@@ -183,6 +180,12 @@ Pour nettoyer la démonstration, la commande "kill" peut être utilisée.
 $ kill %1
 [1]- Terminated ./job | ./job
 \end{lstlisting}
+
+\subsubsection{Schéma récapitulatif}
+
+Le schéma ci-dessous illustre les differents états d'un processus sous le fonctionnement de contrôle de jobs.
+
+\includegraphics[width=1\textwidth]{img/jobControl.png}
 
 
 
