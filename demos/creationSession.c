@@ -12,10 +12,10 @@ int main(void) {
     printf("Avant nouvelle session : PID=%ld, PGID=%ld, SID=%ld\n", (long) getpid(),
         (long) getpgrp(), (long) getsid(0));
 
-    if (setsid() == -1)
+    if (setsid() == -1){
         perror("setsid");
         exit(-1);
-
+    }
     printf("Avant nouvelle session : PID=%ld, PGID=%ld, SID=%ld\n", (long) getpid(),
         (long) getpgrp(), (long) getsid(0));
 

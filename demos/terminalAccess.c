@@ -6,6 +6,7 @@
 
 static void handleSIGTTIN(int sig) {
     printf("%ld: J'ai reçu SIGTTIN\n", (long) getpid());
+	exit(0);
 }
 
 int main(void) {

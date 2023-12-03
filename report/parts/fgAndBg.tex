@@ -25,6 +25,7 @@ qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "
 
 static void handleSIGTTIN(int sig) {
     printf("%ld: J'ai recu SIGTTIN\n", (long) getpid());
+    exit(0);
 }
 int main(void) {
 	struct sigaction sa;
@@ -58,7 +59,7 @@ int main(void) {
 
 Si nous l'éxécutons en foreground rien de particulier se passe, le programme marche correctement. Par contre si celui-ci s'éxécute en background, etant donné que
 le processus sera en background il n'aura plus accés en \textit{stdin} au terminal, le signal SIGTTIN sera retourné.
-Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal (c'est le cas dans ce programme de démonstration).
+Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal.
 
 \begin{lstlisting}[style=blackstyle]
 $ ./terminalAccess &
