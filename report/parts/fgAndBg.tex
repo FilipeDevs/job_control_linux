@@ -10,7 +10,7 @@ le terminal de contrôle, le pilote du terminal délivre le signal correspondant
 
 Comme expliqué précédemment, le groupe de processus en foreground est le seul groupe de processus qui peut lire sur le terminal de contrôle,
 cette restriction prévient de la concurrence pour l’input du terminal. Si un processus en background essaye de lire depuis le terminal, celui-ci
-se verra renvoyer un signal SIGINT, dont le comportement par défaut est de stopper le processus/job. Mais il est important de savoir que par défaut
+se verra renvoyer un signal SIGTTIN, dont le comportement par défaut est de stopper le processus/job. Mais il est important de savoir que par défaut
 les groupes de processus en background peuvent écrire sur le terminal.
 \newline
 Pour illustrer ce comportement utilisions le programme \textit{terminalAccess}. C'est un simple programme qui fait la meme chose que un \textit{cat}, c'est à dire
