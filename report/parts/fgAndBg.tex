@@ -14,7 +14,7 @@ se verra renvoyer un signal SIGTTIN, dont le comportement par défaut est de sto
 les groupes de processus en background peuvent écrire sur le terminal.
 \newline
 Pour illustrer ce comportement utilisions le programme \textit{terminalAccess}. C'est un simple programme qui fait la meme chose que un \textit{cat}, c'est à dire
-qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "Enter". Il gére aussi le signal SIGTTIN.
+qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "Enter", et va ensuite l'afficher.
 
 \begin{lstlisting}[caption={terminalAccess.c}, label={terminalAccess.c}]
 #include <stdio.h>
@@ -24,35 +24,45 @@ qu'il va lire depuis le terminal ce que l'utilisateur tape aprés avoir entré "
 #include <unistd.h>
 
 static void handleSIGTTIN(int sig) {
-    printf("%ld: J'ai recu SIGTTIN\n", (long) getpid());
-    exit(0);
+	printf("%ld: J'ai recu SIGTTIN\n", (long) getpid());
+	raise(SIGSTOP);
+}
+static void handleSIGTTOU(int sig) {
+	printf("%ld: J'ai recu SIGTTOU\n", (long) getpid());
+	raise(SIGSTOP);
 }
 int main(void) {
 	struct sigaction sa;
+	struct sigaction sa2;
 	sa.sa_handler = handleSIGTTIN;
-	printf("Je suis le processus: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
-                    (long) getppid(), (long) getpgrp(), (long) getsid(0));
-
+	sa2.sa_handler = handleSIGTTOU;
 	// Handler pour SIGTTIN
-    if (sigaction(SIGTTIN, &sa, NULL) == -1) {
-		perror("Erreur sigaction SIGINT");
-		exit(-1);
+	if (sigaction(SIGTTIN, &sa, NULL) == -1) {
+    	perror("Erreur sigaction SIGTTIN");
+    	exit(-1);
 	}
-        
+	// Handler pour SIGTTOU
+	if (sigaction(SIGTTOU, &sa2, NULL) == -1) {
+    	perror("Erreur sigaction SIGTTOU");
+    	exit(-1);
+	}
+	printf("Je suis le processus: PID=%ld; PPID=%ld; PGID=%ld; SID=%ld\n", (long) getpid(),
+                	(long) getppid(), (long) getpgrp(), (long) getsid(0));
+  	 
 	char buffer[1024];
 	long n;
 
 	printf("Je vais lire depuis le terminal...\n");
 	printf("Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...\n");
 	while(1) {
-		n = read(STDIN_FILENO, buffer, sizeof(buffer)); 
-		if(n < 0) {
-			perror("Erreur dans read");
-			break;
-		}			
-		
-		write(STDOUT_FILENO, buffer, n);
-	}	
+    	n = read(STDIN_FILENO, buffer, sizeof(buffer));
+    	if(n < 0) {
+        	perror("Erreur dans read");
+        	break;
+    	}     	 
+  	 
+    	write(STDOUT_FILENO, buffer, n);
+	}  
 	return 0;
 }
 \end{lstlisting}
@@ -60,7 +70,6 @@ int main(void) {
 Si nous l'éxécutons en foreground rien de particulier se passe, le programme marche correctement. Par contre si celui-ci s'éxécute en background, etant donné que
 le processus sera en background il n'aura plus accés en \textit{stdin} au terminal, le signal SIGTTIN sera retourné.
 Si le signal est geré ou ignoré une erreur sera renvoyé lors de la tentative de lecture du terminal.
-
 \begin{lstlisting}[style=blackstyle]
 $ ./terminalAccess &
 [1] 4623
@@ -68,24 +77,20 @@ Je suis le processus: PID=4623; PPID=4595; PGID=4623; SID=4595
 Je vais lire depuis le terminal...
 Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...
 4623: J'ai recu SIGTTIN
-Erreur dans read: Interrupted system call
-[1]+  Fini                    ./terminalAccess
+[1]+ Stopped              ./terminalAccess
 \end{lstlisting}
 
 Un petit cas particulier à mettre en avant est qu'il est aussi possible d'envoyer un signal pour "interdire" à un processus en arrière-plan d'écrire dans le terminal. Si le flag TOSTOP est levé pour le terminal, 
 toute tentative d'un processus en arrière-plan d'écrire se verra renvoyer un signal SIGTTOU (par défaut, ce signal stoppe le processus). Si le processus ignore ou gère ce signal, il pourra quand 
-même écrire sur le terminal.
+même écrire sur le terminal (c'est le cas dans ce programme puisqu'il a un gestionnaire pour SIGTTOU). 
 
 \begin{lstlisting}[style=blackstyle]
-$ stty tostop
+$ stty tostop # Flag TOSTOP
 $ ./terminalAccess &
-[1] 4623
-Je suis le processus: PID=4623; PPID=4595; PGID=4623; SID=4595
-Je vais lire depuis le terminal...
-Tapez quelque chose puis Enter, j'afficherais ce que vous avez tape...
-4623: J'ai recu SIGTTIN
-Erreur dans read: Interrupted system call
-[1]+  Fini                    ./terminalAccess
+[1] 4677
+Je suis le processus: PID=4677; PPID=4595; PGID=4677; SID=4595
+4677: J'ai recu SIGTTOU
+[1]+ Stopped              ./terminalAccess
 \end{lstlisting}
 
 \subsection{Fonctions \texttt{tcgetpgrp()} et \texttt{tcsetpgrp()}}

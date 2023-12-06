@@ -57,25 +57,40 @@ make clean
 `sighup.c` : Démonstration du signal SIGHUP. Le programme est destiné à être exécuté avec une redirection vers un fichier de logs. Lors du lancement du programme, fermez le terminal où il s'exécute et consultez les logs pour observer les résultats.
 
 ```bash
-./obtenirGroupe > logs.log
+./sighup > logs.log
 ```
 
 Si un paramètre est donné, le processus fils créé sera placé dans un nouveau groupe.
 
 ```bash
-./obtenirGroupe x > logs.log
+./sighup x > logs.log
 ```
 
 `sighupOrphelins.c` : Démonstration du signal SIGHUP dans un cas particulier nommé : groupe de processus orphelin.
 
 ```bash
-./sighupOrphelins x > logs.log
+./sighupOrphelins
 ```
 
 `terminalAccess.c` : Démonstration de l'accès d'un processus au terminal. Le programme est une version simplifiée de `cat`.
 
+En foreground (avant-plan):
+
 ```bash
 ./terminalAccess
+```
+
+En background (arriere-plan):
+
+```bash
+./terminalAccess &
+```
+
+En background (arriere-plan) + flag tostop pour le terminal:
+
+```bash
+$ stty tostop
+./terminalAccess &
 ```
 
 `jobControlDemo.c` : Démonstration du cycle de vie d'un programme sous le contrôle de jobs. Le programme est destiné à être exécuté dans un pipeline pour illustrer le comportement d'un pipeline au sein du contrôle de jobs. Pour observer le comportement et les sorties, utilisez les commandes et signaux de contrôle de jobs intégrées au shell (fg, bg, CTRL-C, CTRL-Z)

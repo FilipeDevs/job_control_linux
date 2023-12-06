@@ -1,57 +1,27 @@
 \section{Conclusion}
-
-En conclusion, nous avons pu explorer un ensemble de fonctionnalités, conceptes
-dedéies aux controle de jobs. 
+En conclusion, nous avons pu explorer un ensemble de fonctionnalités et de concepts dédiés au contrôle des jobs.
 \newline
-Les sessions et les groupes de processus forment une hiérarchie de processus à 
-deux niveaux : une session est un ensemble de groupes de processus et un groupe 
-de processus est un ensemble de processus.
+Les sessions et les groupes de processus forment une hiérarchie de processus à deux niveaux : une session est un ensemble de groupes de processus, et un groupe de processus est un ensemble de processus.
 \newline
-Un leader de session est le processus qui a créé la session à l'aide de setsid().
-De même, un leader de groupe de processus est le processus qui a créé le groupe à 
-l'aide de setpgid(). Tous les membres d'un groupe de processus partagent le même ID 
-de groupe de processus (PGID), qui est le même que e PID du chef du groupe de processus.
-Tous les processus dans les groupes de processus qui constituent une session ont le 
-même ID de session (SID), qui est le même que le PID du responsable de la session.
+Un leader de session est le processus qui a créé la session à l'aide de \texttt{setsid()}. De même, un leader de groupe de processus est le processus qui a créé le groupe à l'aide de \texttt{setpgid()}. Tous les membres d'un groupe de processus partagent le même ID de groupe de processus (PGID), qui est le même que le PID du chef du groupe de processus. Tous les processus dans les groupes de processus qui constituent une session ont le même ID de session (SID), qui est le même que le PID du responsable de la session.
 \newline
-Chaque session peut avoir un terminal de controle (/dev/tty), qui est établi lorsque 
-le leader de la session ouvre un terminal. L'ouverture du terminal de contrôle fait 
-également que le leader de la session devient le processus contrôleur.
+Chaque session peut avoir un terminal de contrôle (\texttt{/dev/tty}), établi lorsque le leader de la session ouvre un terminal. L'ouverture du terminal de contrôle fait également du leader de la session le processus contrôleur.
 \newline
-Le terminal de contrôle maintient la distinction entre le groupe de processus en premier plan (foreground) 
-et les autres groupes de processus en arrière-plan (background) au sein d'une session. 
-Seul un processus peut être en foreground à la fois. Seuls les processus en foreground peuvent lire à partir 
-du terminal de contrôle. La lecture aux processus en background est empêchée par la livraison du signal SIGTTIN
-dont l'action par défaut est d'arrêter le travail. Si le flag TOSTOP est levé, alors
-les jobs en background ne peuvent également pas écrire sur le terminal de contrôle en raison de
-délivrance d'un signal SIGTTOU, dont l'action par défaut est d'arrêter le travail.
+Le terminal de contrôle maintient la distinction entre le groupe de processus en premier plan (foreground) et les autres groupes de processus en arrière-plan (background) au sein d'une session. Seul un processus peut être en foreground à la fois, et seuls les processus en foreground peuvent lire à partir du terminal de contrôle. La lecture aux processus en background est empêchée par la livraison du signal \texttt{SIGTTIN}, dont l'action par défaut est d'arrêter le travail. Si le flag \texttt{TOSTOP} est levé, alors les jobs en background ne peuvent également pas écrire sur le terminal de contrôle en raison de la délivrance d'un signal \texttt{SIGTTOU}, dont l'action par défaut est d'arrêter le travail.
 \\
-Lorsqu'une déconnexion de terminal se produit, le noyau délivre un signal SIGHUP au processus de contrôle pour l'en informer. 
-Un tel événement peut entraîne une réaction en chaîne par laquelle un signal SIGHUP est transmis à de nombreux autres processus. 
-Si le processus de contrôle est un shell (comme c'est généralement le cas), alors, avant de se terminer, le shell envoie SIGHUP à 
-chacun des groupes de processus qu'il a créés. 
+Lorsqu'une déconnexion de terminal se produit, le noyau délivre un signal \texttt{SIGHUP} au processus de contrôle pour l'en informer. Un tel événement peut entraîner une réaction en chaîne, par laquelle un signal \texttt{SIGHUP} est transmis à de nombreux autres processus. Si le processus de contrôle est un shell (comme c'est généralement le cas), alors, avant de se terminer, le shell envoie \texttt{SIGHUP} à chacun des groupes de processus qu'il a créés.
 \\
 Quelques cas particuliers existent cependant.
 \\ 
-Premierement on a les groupes de processus orphelins. Un groupe de processus est considéré comme orphelin si aucun de ses processus 
-membres n'a de leader de groupe. Les groupes de processus orphelins sont importants car aucun processus en dehors du groupe ne peut à la 
-fois surveiller l'état des processus arrêtés au sein du groupe et est capable d'envoyer un signal SIGCONT à ces processus arrêtés afin 
-de les redémarrer. Cela pourrait avoir pour conséquence que ces processus arrêtés languissent pour toujours sur le système. 
-Pour éviter cette possibilité, lorsqu'un groupe de processus avec des processus membres arrêtés devient orphelin, tous les membres du 
-groupe de processus reçoivent un signal SIGHUP, suivi d'un signal SIGCONT, pour les avertir qu'ils sont devenus orphelins et garantir qu'ils
-sont redémarrés.
-Deuxiément on aussi quelques commandes qui "immunisent" la réception de SIGHUP, notamment nohup et disown.
+Premièrement, on a les groupes de processus orphelins. Un groupe de processus est considéré comme orphelin si aucun de ses processus membres n'a de leader de groupe. Les groupes de processus orphelins sont importants car aucun processus en dehors du groupe ne peut à la fois surveiller l'état des processus arrêtés au sein du groupe et est capable d'envoyer un signal \texttt{SIGCONT} à ces processus arrêtés afin de les redémarrer. Cela pourrait avoir pour conséquence que ces processus arrêtés languissent pour toujours sur le système. Pour éviter cette possibilité, lorsqu'un groupe de processus avec des processus membres arrêtés devient orphelin, tous les membres du groupe de processus reçoivent un signal \texttt{SIGHUP}, suivi d'un signal \texttt{SIGCONT}, pour les avertir qu'ils sont devenus orphelins et garantir qu'ils sont redémarrés.
 \\ 
-La commande "nohup" permet d'ignorer le signal SIGHUP lors de l'exécution d'un processus ou d'un job.
+Deuxièmement, on a aussi quelques commandes qui "immunisent" la réception de \texttt{SIGHUP}, notamment \texttt{nohup} et \texttt{disown}.
 \\ 
-La commande "disown" permet de retirer un processus de la liste des jobs du shell, tout en le laissant s'exécuter en arriere plan.
+La commande \texttt{nohup} permet d'ignorer le signal \texttt{SIGHUP} lors de l'exécution d'un processus ou d'un job.
 \\ 
-Le shell offre quelques commandes pour faire du controle de jobs, notamment bg, fg, jobs.
-Ces commandes sont utilisés pour modifier l'état des processus, notamment pour les mettre en foreground ou background.
+La commande \texttt{disown} permet de retirer un processus de la liste des jobs du shell, tout en le laissant s'exécuter en arrière-plan.
+\\ 
+Le shell offre quelques commandes pour faire du contrôle de jobs, notamment \texttt{bg}, \texttt{fg}, \texttt{jobs}. Ces commandes sont utilisées pour modifier l'état des processus, notamment pour les mettre en foreground ou background.
 \\
-En conclusion, le contrôle des jobs est un aspect essentiel de la gestion des processus dans un système Linux. Il offre une 
-flexibilité et un contrôle précis sur l'exécution des processus, permettant aux utilisateurs de manipuler efficacement l'état des processus 
-et d'optimiser l'utilisation des ressources système. Cependant, le contrôle des jobs n'est que la pointe de l'iceberg en matière de gestion des processus. 
-Des sujets tels que la planification des processus, la synchronisation des processus et la communication inter-processus sont également des aspects cruciaux 
-de la gestion des processus. Ces sujets méritent une exploration plus approfondie pour une compréhension complète de la gestion des processus dans les systèmes d'exploitation.
+En conclusion, le contrôle des jobs est un aspect essentiel de la gestion des processus dans un système Linux. Il offre une flexibilité et un contrôle précis sur l'exécution des processus, permettant aux utilisateurs de manipuler efficacement l'état des processus. Cependant, le contrôle des jobs n'est que la pointe de l'iceberg en matière de gestion des processus. Des sujets tels que la planification des processus, la synchronisation des processus et la communication inter-processus sont également des aspects cruciaux de la gestion des processus. Ces sujets méritent une exploration plus approfondie pour une compréhension complète de la gestion des processus dans les systèmes d'exploitation.
 \\
