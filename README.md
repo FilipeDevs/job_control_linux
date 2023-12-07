@@ -1,4 +1,8 @@
-# Contrôle de Jobs - Filipe PEREIRA MARTINS - 58093 (E11)
+# Linux Job Control
+
+This repository is part of a research project for my Linux course.
+
+Ce dépot fait partie d'un projet de recherche pour mon cours de Linux.
 
 ## Génération Rapport PDF
 
