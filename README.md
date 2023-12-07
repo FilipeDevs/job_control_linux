@@ -99,14 +99,38 @@ $ stty tostop
 ./job | ./job
 ```
 
-`scriptBidon.sh` : Simple script qui affiche la date et l'heure courantes toutes les 3 secondes.
+`scriptBidon.sh` : Simple script qui affiche la date et l'heure courante toutes les 3 secondes. Ce script est destiné à etre utilisé
+avec `nohup` ou `disown`, pour démontrer "l'imunisation" à SIGHUP.
+
+1. Utilisation avec `nohup` :
+
+```bash
+nohup ./scriptBidon.sh &
+```
+
+Fermez le terminal où il s'exécute et éxécutez la commande au **point 3**.
+
+2. Utilisation avec `disown` :
+
+```bash
+./scriptBidon.sh &
+$ disown
+```
+
+Fermez le terminal où il s'exécute et éxécutez la commande au **point 3**.
+
+3. Trouver le script en éxécution avec d'autres informations :
+
+```bash
+ps -ef | grep "[s]criptBidon"
+```
 
 # Bibliographie et références
 
 - The Design and Implementation of the FreeBSD Operating System, by Marshall Kirk McKusick, George V. Neville-Neil
 
-* The Linux Programming Interface by Michael KerrisK
+- The Linux Programming Interface by Michael KerrisK
 
-* Advanced Programming in the UNIX Environment: Second Edition by W. Richard Stevens, Stephen A. Rago
+- Advanced Programming in the UNIX Environment: Second Edition by W. Richard Stevens, Stephen A. Rago
 
-* The GNU C Library (glibc) manual
+- The GNU C Library (glibc) manual

@@ -5,9 +5,9 @@ Pour éclaircir les concepts de groupes de processus et de sessions, examinons l
 \begin{lstlisting}[style=blackstyle]
 $ echo $$ # PID du shell
 1121
-$ yes "data" | head -n 1000000000 > /dev/null &  # 2 process en background
+$ yes "data" | head -n 10000000000 > /dev/null &  # 2 process en background
 [1] 1147
-$ ps -o 'pid,ppid,pgid,sid,cmd' # 1 process en foreground
+$ ps -o "pid,ppid,pgid,sid,cmd" # 1 process en foreground
   PID    PPID    PGID     SID CMD
  1121    1117    1121    1121 bash
  1146    1121    1146    1121 yes data

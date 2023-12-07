@@ -195,7 +195,7 @@ $ nohup ./scriptBidon.sh &
 nohup: ignoring input and appending output to 'nohup.out'                              
 $ jobs -l
 [1]  + 5725 running    nohup ./scriptBidon.sh
-$ ps -ef | grep '[s]criptBidon'
+$ ps -ef | grep "[s]criptBidon"
 user0   5725  5656  0 18:46 pts/0    00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
 
@@ -203,8 +203,8 @@ En fermant ensuite le terminal actuel et en ouvrant un nouveau terminal, les com
 mais n'est plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal de contrôle).
 
 \begin{lstlisting}[style=blackstyle]
-$ ps -ef | grep '[s]criptBidon'
-kent   5725       1  0 18:59  ?    00:00:00 /bin/bash ./scriptBidon.sh
+$ ps -ef | grep "[s]criptBidon"
+user0   5725       1  0 18:59  ?    00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
 
 \subsubsection{\textit{disown}}
@@ -216,20 +216,20 @@ Prenons pour exemple le script \textit{scriptBidon.sh}. Lorsqu'on le lance en ar
 nous utilisons \textit{disown} et réaffichons la liste des jobs, on observe que le processus a disparu, bien qu'il continue de s'exécuter. Ceci est confirmé en utilisant la commande \textit{ps}.
 
 \begin{lstlisting}[style=blackstyle]
-$ ./scriptBidon.sh > blob.log &
+$ ./scriptBidon.sh
 [1] 4595
 $ jobs -l
-[1] + 4595 running ./scriptBidon.sh > blob.log &
+[1] + 4595 running ./scriptBidon.sh
 $ disown
 $ jobs -l
-$ ps -ef | grep '[s]criptBidon'
-user0 4595 4352 0 11:03 pts/3 00:00:00 /bin/bash ./scriptBidon.sh > blob.log &
+$ ps -ef | grep "[s]criptBidon"
+user0 4595 4352 0 11:03 pts/3 00:00:00 /bin/bash ./scriptBidon.sh
 \end{lstlisting}
 
 En fermant le terminal actuel et en ouvrant un nouveau terminal, les commandes suivantes révèlent que le script continue son exécution, ayant ignoré le signal SIGHUP. Il n'est cependant
 plus attaché à un terminal de contrôle (le "?" dans la colonne TTY indique que le processus n'est pas attaché à un terminal).
 
 \begin{lstlisting}[style=blackstyle]
-$ ps -ef | grep '[s]criptBidon'
-user0 4595 1 0 11:03 ? 00:00:00 /bin/bash ../scriptBidon.sh > blob.log &
+$ ps -ef | grep "[s]criptBidon"
+user0 4595 1 0 11:03 ? 00:00:00 /bin/bash ../scriptBidon.sh
 \end{lstlisting}

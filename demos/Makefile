@@ -1,6 +1,6 @@
 CC = gcc
 
-all: creationGroupe creationSession jobControlDemo obtenirGroupe sighup sighupOrphelins terminalAccess
+all: creationGroupe creationSession jobControlDemo obtenirGroupe sighup sighupOrphelins terminalAccess addPermsScripts
 
 creationGroupe: creationGroupe.c
 	$(CC) -o creationGroupe creationGroupe.c
@@ -22,6 +22,9 @@ sighupOrphelins: sighupOrphelins.c
 
 terminalAccess: terminalAccess.c
 	$(CC) -o terminalAccess terminalAccess.c
+
+addPermsScripts:
+	$ chmod +x scriptBidon.sh
 
 clean:
 	rm -f creationGroupe creationSession job obtenirGroupe sighup sighupOrphelins terminalAccess
